@@ -3,6 +3,11 @@ services:
     image: mysql:8.4
     container_name: ttc-mysql-dev
     restart: unless-stopped
+    # Trim MySQL 8's idle footprint (perf_schema + buffer pool) — small club DB. ~470M → ~250M.
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --innodb-buffer-pool-instances=1
     environment:
       MYSQL_ROOT_PASSWORD: my-secret-pw
       MYSQL_DATABASE: ttc_aalst

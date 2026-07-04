@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { mergeInStore2 } from './immutableHelpers';
+import { preservePredictions } from './preservePredictions';
 import { ICacheResponse, IPlayerCompetition, IPlayerStyle, IStorePlayer, PredictionResult, IPlayerEvent } from '../models/model-interfaces';
 import http from '../utils/httpClient';
 import { t } from '../locales';
@@ -143,6 +144,7 @@ const playersSlice = createSlice({
       if (!action.payload?.data) {
         return state;
       }
+      preservePredictions(state, action.payload.data);
       const newState = mergeInStore2(state, action.payload.data, p => p.active);
       return newState;
     });
@@ -150,6 +152,7 @@ const playersSlice = createSlice({
       if (!action.payload?.active) {
         return state.filter(x => x.id !== action.payload.id);
       }
+      preservePredictions(state, action.payload);
       const newState = mergeInStore2(state, action.payload, p => p.active);
       return newState;
     });

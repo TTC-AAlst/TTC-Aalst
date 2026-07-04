@@ -20,7 +20,7 @@ import {
   IFullStoreMatchOwn,
   IMatchComment,
 } from './model-interfaces';
-import httpClient from '../utils/httpClient';
+import { logger } from '../utils/logger';
 
 // TODO: Duplicted in backend. Should be in db.
 const defaultStartHour = 20;
@@ -204,14 +204,10 @@ export default class MatchModel implements IMatch {
   getTeam(): ITeam {
     const team = storeUtil.getTeam(this.teamId);
     if (!team || !team.id) {
-      const errObj = {
-        message: `MatchId=${this.id}: teamId ${this.teamId} not found. Match=${JSON.stringify(this)}`,
-        stack: '',
-        componentStack: null,
-      };
+      const message = `MatchId=${this.id}: teamId ${this.teamId} not found. Match=${JSON.stringify(this)}`;
       // eslint-disable-next-line no-console
-      console.warn(errObj.message);
-      httpClient.post('/config/Log', errObj);
+      console.warn(message);
+      logger.error(message);
     }
     return team;
   }

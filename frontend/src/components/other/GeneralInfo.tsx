@@ -8,21 +8,20 @@ export const GeneralInfo = () => {
 
   return (
     <div style={{ marginTop: 10, marginBottom: 10 }}>
-      <h2>{t('clubs.generalInfo.title')}</h2>
+      <h1>{t('clubs.generalInfo.title')}</h1>
       <div className="row">
         <div className="col-md-6">
-          <h1>{t('clubs.generalInfo.contact')}</h1>
+          <h2>{t('clubs.generalInfo.contact')}</h2>
           <strong>{t('clubs.generalInfo.ourAddress')}</strong> {params.location}
           <div>
             <strong>{t('clubs.generalInfo.ourEmail')}</strong> <OwnEmail />
           </div>
           <strong>{t('clubs.generalInfo.orgNr')}</strong> {params.clubOrgNr}
           <br />
-          <h1>{t('clubs.generalInfo.openDays')}</h1>
+          <h2>{t('clubs.generalInfo.openDays')}</h2>
           {params.competitionDays}
           <br />
           {params.trainingDays}
-          Hello?
           <br />
           {params.trainingDays2}
           <br />
@@ -42,7 +41,7 @@ export const GeneralInfo = () => {
           <br />
           {params.compBalls}
           <br />
-          <h1>{t('clubs.generalInfo.moneyMoney')}</h1>
+          <h2>{t('clubs.generalInfo.moneyMoney')}</h2>
           {params.adultMembership}
           <br />
           {params.youthMembership}
@@ -54,7 +53,7 @@ export const GeneralInfo = () => {
           <br />
         </div>
         <div className="col-md-6">
-          <h1 className="d-block d-md-none">{t('clubs.generalInfo.googleMap')}</h1>
+          <h2 className="d-block d-md-none">{t('clubs.generalInfo.googleMap')}</h2>
           <GoogleMap />
         </div>
       </div>

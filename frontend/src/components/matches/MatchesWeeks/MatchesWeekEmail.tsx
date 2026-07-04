@@ -11,7 +11,7 @@ import { Competition, IMatch } from '../../../models/model-interfaces';
 import { selectPlayers, selectUser, useTtcDispatch, useTtcSelector } from '../../../utils/hooks/storeHooks';
 import { getOpponentMatches } from '../../../reducers/readonlyMatchesReducer';
 import { emailFormation } from '../../../reducers/matchesReducer';
-import httpClient from '../../../utils/httpClient';
+import { logger } from '../../../utils/logger';
 
 type MatchesWeekEmailProps = {
   weekCalcer: WeekCalcer;
@@ -33,14 +33,10 @@ export const MatchesWeekEmail = ({ compFilter, weekCalcer, matches, prevMatches 
   useEffect(() => {
     matches.concat(prevMatches).forEach(match => {
       if (!match.teamId) {
-        const errObj = {
-          message: `MatchesWeekEmail: MatchId=${match.id}: teamId ${match.teamId} not found. Match=${JSON.stringify(match)}`,
-          stack: '',
-          componentStack: null,
-        };
+        const message = `MatchesWeekEmail: MatchId=${match.id}: teamId ${match.teamId} not found. Match=${JSON.stringify(match)}`;
         // eslint-disable-next-line no-console
-        console.warn(errObj.message);
-        httpClient.post('/config/Log', errObj);
+        console.warn(message);
+        logger.error(message);
       } else {
         dispatch(getOpponentMatches({ teamId: match.teamId, opponent: match.opponent }));
       }

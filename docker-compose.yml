@@ -2,6 +2,12 @@ services:
   db:
     image: mysql:8.4
     restart: unless-stopped
+    # MySQL 8 idles ~470M; the bulk is performance_schema (allocated up front, never freed) +
+    # the default buffer pool. This is a small club DB — trim both. ~470M → ~250M per instance.
+    command:
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --innodb-buffer-pool-instances=1
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-my-secret-pw}
       MYSQL_DATABASE: ttc_aalst
@@ -51,9 +57,16 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        SOURCE_COMMIT: ${SOURCE_COMMIT:-dev}
     restart: unless-stopped
     expose:
       - "80"
+    environment:
+      # Coolify generates this service's Traefik router from this magic var on every deployment,
+      # including PR previews. The docker_compose_domains UI mapping alone does NOT emit router
+      # labels for compose PREVIEW deploys (Coolify 4.1.2) → previews 404 without this.
+      - SERVICE_FQDN_FRONTEND_80=/
     depends_on:
       - backend
 

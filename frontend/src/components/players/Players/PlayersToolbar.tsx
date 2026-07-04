@@ -35,7 +35,7 @@ export const PlayersToolbar = ({
   ];
 
   return (
-    <div style={{ marginRight: 5, marginLeft, marginBottom: 5 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginRight: 5, marginLeft, marginBottom: 5 }}>
       <Form.Control placeholder={t('players.search')} onChange={e => onFilterChange(e.target.value.toLowerCase())} style={{ width: 150, marginTop: 8 }} />
 
       <div className="button-bar-right" style={{ marginTop: 5 }}>

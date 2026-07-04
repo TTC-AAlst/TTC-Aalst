@@ -1,5 +1,6 @@
-import React from 'react';
-import { BrowserRouter, Route, Routes as Switch } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Route, Routes as Switch, useLocation } from 'react-router-dom';
+import { logger } from './utils/logger';
 import { Competition, ITeam, ITeamOpponent } from './models/model-interfaces';
 import { useInitialLoad } from './utils/initialLoad';
 import { App } from './components/App/App';
@@ -27,6 +28,14 @@ const Teams = React.lazy(() => import('./components/teams/Teams').then(m => ({ d
 const Admin = React.lazy(() => import('./components/admin/Admin'));
 const OpponentOverview = React.lazy(() => import('./components/teams/OpponentOverview').then(m => ({ default: m.OpponentOverview })));
 
+const RouterEffects = () => {
+  const location = useLocation();
+  useEffect(() => {
+    logger.breadcrumb('route', { to: location.pathname });
+  }, [location.pathname]);
+  return null;
+};
+
 const Routes = () => {
   useInitialLoad();
   useErrorHandling();
@@ -34,6 +43,7 @@ const Routes = () => {
 
   return (
     <BrowserRouter>
+      <RouterEffects />
       <Switch>
         <Route path={`${t.route('matchesWeek')}/:week?/:comp?`} element={<App Component={MatchesWeek} />} />
         <Route path={`${t.route('teams')}/:tabKey?/:view?`} element={<App Component={Teams} />} />

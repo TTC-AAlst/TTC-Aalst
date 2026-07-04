@@ -1,4 +1,4 @@
-import { config, devUrl, isDev, getSignalRUrl, getStaticFileUrl } from '../../config';
+import { config, devUrl, isDev, getSignalRUrl, getStaticFileUrl, getApiUrl } from '../../config';
 
 describe('config', () => {
   it('has expected properties', () => {
@@ -51,5 +51,23 @@ describe('getStaticFileUrl', () => {
   it('returns production URL on prod hostname', () => {
     Object.defineProperty(window, 'location', { value: { hostname: 'ttc-aalst.be' }, writable: true });
     expect(getStaticFileUrl('/img/test.png')).toBe(`${config.images}/img/test.png`);
+  });
+});
+
+describe('getApiUrl', () => {
+  it('prefixes /api and the dev backend when on localhost', () => {
+    Object.defineProperty(window, 'location', { value: { hostname: 'localhost' }, writable: true });
+    expect(getApiUrl('/log')).toBe('http://localhost:5193/api/log');
+  });
+
+  it('prefixes /api with the configured backend in prod', () => {
+    Object.defineProperty(window, 'location', { value: { hostname: 'ttc-aalst.be' }, writable: true });
+    expect(getApiUrl('/log')).toBe('/api/log');
+  });
+});
+
+describe('config.version', () => {
+  it('falls back to "dev" when VITE_APP_VERSION is unset', () => {
+    expect(config.version).toBe('dev');
   });
 });

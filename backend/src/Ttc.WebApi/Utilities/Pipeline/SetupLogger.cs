@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Grafana.Loki;
@@ -36,7 +37,7 @@ public static class SetupLogger
                 ttcSettings.Loki,
                 [
                     new LokiLabel() { Key = "service_name", Value = "ttc-backend" },
-                    new LokiLabel() { Key = "app", Value = "ttc" },
+                    new LokiLabel() { Key = "app", Value = AppLabelForOrigin(ttcSettings.Origins) },
                 ],
                 [
                     "level",
@@ -47,5 +48,30 @@ public static class SetupLogger
                     "env"
                 ])
             .CreateLogger();
+    }
+
+    // Loki `app` label per environment so dev/preview logs don't commingle with prod.
+    // Derived from the public origin (set per Coolify tier) because Coolify does NOT
+    // expose COOLIFY_BRANCH to the running container — neither via compose env (it
+    // pre-substitutes ${...} to empty) nor as a build-arg value:
+    //   https://ttc-aalst.be → "ttc", https://dev-ttc-aalst.sangu.be → "ttc-dev",
+    //   https://pr-7-ttc-aalst.sangu.be → "ttc-pr-7".
+    public static string AppLabelForOrigin(string? origins)
+    {
+        var host = origins?.Split(',')[0].Trim();
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            return "ttc";
+        }
+
+        host = Regex.Replace(host, @"^\w+://", "").Split('/')[0];
+
+        var pr = Regex.Match(host, @"^pr-(\d+)-");
+        if (pr.Success)
+        {
+            return $"ttc-pr-{pr.Groups[1].Value}";
+        }
+
+        return host.StartsWith("dev-") ? "ttc-dev" : "ttc";
     }
 }

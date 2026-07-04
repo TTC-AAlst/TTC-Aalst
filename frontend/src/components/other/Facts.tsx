@@ -1,8 +1,9 @@
 import Accordion from 'react-bootstrap/Accordion';
 import { t } from '../../locales';
+import './Facts.css';
 
 const Facts = () => (
-  <Accordion style={{ marginTop: 10 }} id="navigation">
+  <Accordion className="facts-accordion" style={{ marginTop: 10 }} id="navigation">
     <Accordion.Item eventKey="1">
       <Accordion.Header>
         <b>{t('facts.service')}</b>

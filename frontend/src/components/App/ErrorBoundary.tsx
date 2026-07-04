@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import StackTrace from 'stacktrace-js';
 import { t } from '../../locales';
-import httpClient from '../../utils/httpClient';
+import { logger } from '../../utils/logger';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -23,30 +22,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     this.setState({ hasError: true });
-    this.logErrorToBackend(error, errorInfo);
-  }
-
-  logErrorToBackend(error: Error, errorInfo: React.ErrorInfo) {
-    StackTrace.fromError(error)
-      .then(err => {
-        const errObj = {
-          message: `ErrorBoundary: ${error.message}.`,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          url: document.location.pathname,
-          parsedStack: JSON.stringify(err, null, 2),
-        };
-        httpClient.post('/config/Log', errObj);
-      })
-      .catch(err => {
-        const errObj = {
-          message: `ErrorBoundary: ${error.message}. Err from stacktrace-js: ${err}`,
-          stack: error.stack,
-          componentStack: errorInfo.componentStack,
-          url: document.location.pathname,
-        };
-        httpClient.post('/config/Log', errObj);
-      });
+    logger.error(`ErrorBoundary: ${error.message}`, {
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   resetError = () => {

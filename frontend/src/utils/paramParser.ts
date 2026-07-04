@@ -1,4 +1,4 @@
-import httpClient from './httpClient';
+import { logger } from './logger';
 import { EetfestijnModel } from '../components/admin/EetfestijnModel';
 
 export function parseEvents(json: string): string[] {
@@ -9,13 +9,7 @@ export function parseEvents(json: string): string[] {
   try {
     return JSON.parse(json);
   } catch (err: unknown) {
-    const errObj = {
-      message: `parseEvents: ${err instanceof Error ? err.message : String(err)}`,
-      stack: JSON.stringify(err),
-      componentStack: json,
-      url: document.location.pathname,
-    };
-    httpClient.post('/config/Log', errObj);
+    logger.error(`parseEvents: ${err instanceof Error ? err.message : String(err)}`, { stack: JSON.stringify(err), raw: json });
     return [];
   }
 }
@@ -28,13 +22,7 @@ export function parseEetfestijn(json: string): EetfestijnModel {
   try {
     return JSON.parse(json);
   } catch (err: unknown) {
-    const errObj = {
-      message: `parseEetfestijn: ${err instanceof Error ? err.message : String(err)}`,
-      stack: JSON.stringify(err),
-      componentStack: json,
-      url: document.location.pathname,
-    };
-    httpClient.post('/config/Log', errObj);
+    logger.error(`parseEetfestijn: ${err instanceof Error ? err.message : String(err)}`, { stack: JSON.stringify(err), raw: json });
     return defaultEetfestijn;
   }
 }

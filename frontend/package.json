@@ -36,8 +36,7 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "7.18.0",
     "react-select": "5.10.2",
-    "redux": "^5.0.1",
-    "stacktrace-js": "^2.0.2"
+    "redux": "^5.0.1"
   },
   "overrides": {
     "minimatch": "^10.2.3",

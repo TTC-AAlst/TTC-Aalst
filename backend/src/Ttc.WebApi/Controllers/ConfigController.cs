@@ -52,21 +52,6 @@ public class ConfigController
         _cache.Remove("ranking-predictions");
     }
 
-    [HttpPost]
-    [Route("Log")]
-    [AllowAnonymous]
-    public void Log([FromBody] ComponentError error)
-    {
-        string nl = Environment.NewLine;
-        _logger.Error(
-            $"{{ErrorMessage}}{nl}Url: {{Path}}{nl}Stack: {{Stack}}{nl}{nl}Component Stack: {{ComponentStack}}{nl}{nl}Stacktrace.js: {{ParsedStackTrace}}",
-            error.Message,
-            error.Url,
-            error.Stack,
-            error.ComponentStack,
-            error.ParsedStack);
-    }
-
     [HttpGet]
     [Route("Log/Get")]
     [AllowAnonymous]
@@ -90,18 +75,4 @@ public class ConfigParam
     public string Value { get; set; } = "";
 
     public override string ToString() => $"{Key} => {Value}";
-}
-
-public class ComponentError
-{
-    public string Message { get; set; } = "";
-    public string Stack { get; set; } = "";
-    public string ComponentStack { get; set; } = "";
-    public string Url { get; set; } = "";
-    /// <summary>
-    /// Stack trace from stacktrace.js
-    /// </summary>
-    public string ParsedStack { get; set; } = "";
-
-    public override string ToString() => Message;
 }

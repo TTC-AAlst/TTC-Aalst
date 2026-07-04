@@ -1,7 +1,7 @@
 export const config = {
   ga: 'G-DFM5137DWX',
   backend: '',
-  version: 'v1.0',
+  version: import.meta.env.VITE_APP_VERSION ?? 'dev',
   images: '',
 };
 
@@ -16,6 +16,11 @@ export function isDev() {
 export function isProd() {
   const { hostname } = window.location;
   return hostname === 'ttc-aalst.be' || hostname === 'www.ttc-aalst.be';
+}
+
+export function getApiUrl(path: string): string {
+  const full = `/api${path}`;
+  return isDev() ? `${devUrl}${full}` : `${config.backend}${full}`;
 }
 
 export function getSignalRUrl() {

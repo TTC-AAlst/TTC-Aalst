@@ -1,0 +1,5 @@
+/* Global `.accordion-body { padding: 0 }` (Match.scss) strips padding from
+   every accordion; restore breathing room for the facts panels only. */
+.facts-accordion .accordion-body {
+  padding: 1rem 1.25rem;
+}

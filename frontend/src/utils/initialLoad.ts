@@ -6,7 +6,7 @@ import { fetchPlayers, fetchRankingPredictions } from '../reducers/playersReduce
 import { fetchTeams, loadTeamRanking } from '../reducers/teamsReducer';
 import { fetchMatches, frenoyMatchSync } from '../reducers/matchesReducer';
 import { validateToken } from '../reducers/userActions';
-import http from './httpClient';
+import { logger } from './logger';
 
 export const useInitialLoad = () => {
   const dispatch = useTtcDispatch();
@@ -76,13 +76,7 @@ export const useInitialLoad = () => {
       dispatch(fetchRankingPredictions())
         .unwrap()
         .catch(err => {
-          http.post('/config/log', {
-            Message: `Failed to load ranking predictions: ${err?.message || String(err)}`,
-            Stack: err?.stack || '',
-            ComponentStack: `userAgent: ${navigator.userAgent}, screen: ${window.innerWidth}x${window.innerHeight}`,
-            Url: window.location.href,
-            ParsedStack: '',
-          });
+          logger.error(`ranking predictions failed: ${err?.message || String(err)}`, { stack: err?.stack });
         });
 
       matches.forEach(match => {
