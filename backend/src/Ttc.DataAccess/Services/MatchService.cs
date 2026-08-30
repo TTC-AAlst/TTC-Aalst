@@ -13,11 +13,48 @@ namespace Ttc.DataAccess.Services;
 
 public class MatchService
 {
-    private readonly ITtcDbContext _context;
+    /// <summary>
+    /// Players that are not a captain or board member may only touch the formation once the match is imminent
+    /// </summary>
+    private const int FormationEditWindowHours = 2;
 
-    public MatchService(ITtcDbContext context)
+    private readonly ITtcDbContext _context;
+    private readonly IUserProvider _userProvider;
+
+    public MatchService(ITtcDbContext context, IUserProvider userProvider)
     {
         _context = context;
+        _userProvider = userProvider;
+    }
+
+    public async Task<bool> MayEditFormation(int matchId)
+    {
+        int? playerId = _userProvider.PlayerId;
+        if (!playerId.HasValue)
+        {
+            return false;
+        }
+
+        var match = await _context.Matches.SingleOrDefaultAsync(x => x.Id == matchId);
+        if (match == null)
+        {
+            return false;
+        }
+
+        if (match.Date <= TtcDbContext.GetCurrentBelgianDateTime().AddHours(FormationEditWindowHours))
+        {
+            return true;
+        }
+
+        var player = await _context.Players.FindAsync(playerId.Value);
+        if (player != null && player.Security != PlayerAccess.Player)
+        {
+            return true;
+        }
+
+        int? teamId = match.HomeTeamId ?? match.AwayTeamId;
+        return await _context.TeamPlayers
+            .AnyAsync(x => x.TeamId == teamId && x.PlayerId == playerId && x.PlayerType == TeamPlayerType.Captain);
     }
 
     #region Getters

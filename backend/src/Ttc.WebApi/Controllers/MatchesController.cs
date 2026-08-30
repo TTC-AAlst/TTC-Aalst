@@ -137,8 +137,13 @@ public class MatchesController
 
     [HttpPost]
     [Route("TogglePlayer")]
-    public async Task<Match> TogglePlayer([FromBody] MatchPlayer player)
+    public async Task<ActionResult<Match>> TogglePlayer([FromBody] MatchPlayer player)
     {
+        if (!await _service.MayEditFormation(player.MatchId))
+        {
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
+
         var result = await _service.ToggleMatchPlayer(player);
         await _hub.Clients.All.BroadcastReload(Entities.Match, player.MatchId);
         return result;
@@ -155,8 +160,13 @@ public class MatchesController
 
     [HttpPost]
     [Route("EditMatchPlayers")]
-    public async Task<Match> EditMatchPlayers([FromBody] MatchPlayersDto dto)
+    public async Task<ActionResult<Match>> EditMatchPlayers([FromBody] MatchPlayersDto dto)
     {
+        if (!await _service.MayEditFormation(dto.MatchId))
+        {
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
+
         var result = await _service.EditMatchPlayers(dto.MatchId, dto.PlayerIds, dto.NewStatus, dto.BlockAlso, dto.Comment);
         await _hub.Clients.All.BroadcastReload(Entities.Match, dto.MatchId);
         return result;
