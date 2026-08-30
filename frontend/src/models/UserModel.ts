@@ -5,6 +5,9 @@ import { IPlayer, ITeam, IMatch, IStoreTeam } from './model-interfaces';
 export const userRoles = ['Player', 'Board', 'Dev', 'System'] as const;
 export type UserRoles = (typeof userRoles)[number];
 
+/** Players without a captain/board role may only touch the formation once the match is imminent */
+const FORMATION_EDIT_WINDOW_HOURS = 2;
+
 const security = {
   CAN_MANAGETEAM: 'CAN_MANAGETEAM',
   CAN_EDITALLREPORTS: 'CAN_EDITALLREPORTS',
@@ -27,7 +30,7 @@ export interface IUser extends IStoreUser {
   canManageTeams(): boolean;
   canEditMatchesOrIsCaptain(): boolean;
   canEditMatchPlayers(match: IMatch): boolean;
-  canEditPlayersOnMatchDay(match: IMatch): boolean;
+  canEditFormation(match: IMatch): boolean;
   canPostReport(teamId: number): boolean;
   canChangeMatchScore(match: IMatch): boolean;
   isAdmin: () => boolean;
@@ -99,12 +102,16 @@ export default class UserModel implements IUser {
     return true;
   }
 
-  canEditPlayersOnMatchDay(match: IMatch) {
-    if (this.isAdmin()) {
+  canEditFormation(match: IMatch): boolean {
+    if (!this.playerId) {
+      return false;
+    }
+
+    if (this.isAdmin() || this.canEditMatchesOrIsCaptain()) {
       return true;
     }
 
-    return !!this.playerId && match.date.isSame(dayjs(), 'day');
+    return match.date.subtract(FORMATION_EDIT_WINDOW_HOURS, 'hour').isBefore(dayjs());
   }
 
   canPostReport(teamId: number): boolean {

@@ -1,47 +1,65 @@
 import dayjs from 'dayjs';
+import { vi } from 'vitest';
+import storeUtil from '../../storeUtil';
 import UserModel from '../UserModel';
 import { IMatch } from '../model-interfaces';
 
+vi.mock('../../storeUtil', () => ({
+  default: {
+    getTeam: vi.fn(),
+    getPlayer: vi.fn(),
+  },
+}));
+
 const createUser = (playerId: number, securityRoles: string[] = []) => new UserModel({ playerId, teams: [], security: securityRoles });
 
-const createMatchStub = (dateStr: string): IMatch =>
+const createMatchStub = (date: dayjs.Dayjs): IMatch =>
   ({
-    date: dayjs(dateStr),
+    date,
   }) as unknown as IMatch;
 
-describe('UserModel.canEditPlayersOnMatchDay', () => {
-  it('returns true for admin regardless of date', () => {
+describe('UserModel.canEditFormation', () => {
+  it('allows a board member to edit days before the match', () => {
+    const user = createUser(1, ['CAN_MANAGETEAM']);
+    expect(user.canEditFormation(createMatchStub(dayjs().add(5, 'day')))).toBe(true);
+  });
+
+  it('allows an admin to edit days before the match', () => {
     const user = createUser(1, ['IS_ADMIN']);
-    const match = createMatchStub('2020-01-01T20:00:00');
-    expect(user.canEditPlayersOnMatchDay(match)).toBe(true);
+    expect(user.canEditFormation(createMatchStub(dayjs().add(5, 'day')))).toBe(true);
   });
 
-  it('returns true when player has id and match is today', () => {
+  it('allows a captain of one of his teams to edit days before the match', () => {
+    vi.mocked(storeUtil.getTeam).mockReturnValue({ getCaptainPlayerIds: () => [7] } as never);
+    const user = new UserModel({ playerId: 7, teams: [1], security: [] });
+    expect(user.canEditFormation(createMatchStub(dayjs().add(5, 'day')))).toBe(true);
+  });
+
+  it('blocks a regular player more than 2 hours before the match', () => {
     const user = createUser(1);
-    const today = dayjs().format('YYYY-MM-DDTHH:mm:ss');
-    const match = createMatchStub(today);
-    expect(user.canEditPlayersOnMatchDay(match)).toBe(true);
+    expect(user.canEditFormation(createMatchStub(dayjs().add(3, 'hour')))).toBe(false);
   });
 
-  it('returns false when player has id but match is not today', () => {
-    const user = createUser(1);
-    const match = createMatchStub('2020-06-15T20:00:00');
-    expect(user.canEditPlayersOnMatchDay(match)).toBe(false);
-  });
-
-  it('returns false when no player id even if match is today', () => {
-    const user = createUser(0);
-    const today = dayjs().format('YYYY-MM-DDTHH:mm:ss');
-    const match = createMatchStub(today);
-    expect(user.canEditPlayersOnMatchDay(match)).toBe(false);
-  });
-
-  it('isSame compares at day granularity, not exact time', () => {
+  it('blocks a regular player earlier on match day', () => {
     const user = createUser(1);
     vi.useFakeTimers();
-    vi.setSystemTime(new Date(2025, 2, 15, 10, 0, 0)); // 10:00
-    const match = createMatchStub('2025-03-15T20:00:00'); // 20:00 same day
-    expect(user.canEditPlayersOnMatchDay(match)).toBe(true);
+    vi.setSystemTime(new Date(2025, 2, 15, 10, 0, 0));
+    expect(user.canEditFormation(createMatchStub(dayjs('2025-03-15T20:00:00')))).toBe(false);
     vi.useRealTimers();
+  });
+
+  it('allows a regular player within 2 hours before the match', () => {
+    const user = createUser(1);
+    expect(user.canEditFormation(createMatchStub(dayjs().add(90, 'minute')))).toBe(true);
+  });
+
+  it('allows a regular player once the match has started', () => {
+    const user = createUser(1);
+    expect(user.canEditFormation(createMatchStub(dayjs().subtract(30, 'minute')))).toBe(true);
+  });
+
+  it('blocks anonymous visitors during the match', () => {
+    const user = createUser(0);
+    expect(user.canEditFormation(createMatchStub(dayjs()))).toBe(false);
   });
 });

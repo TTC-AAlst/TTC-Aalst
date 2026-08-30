@@ -7,7 +7,7 @@ import { IMatch } from '../../../../models/model-interfaces';
 
 vi.mock('../../../../storeUtil', () => ({
   default: {
-    getTeam: vi.fn(),
+    getTeam: vi.fn().mockReturnValue({ getCaptainPlayerIds: () => [] }),
     getTeams: vi.fn().mockReturnValue([]),
     getClub: vi.fn(),
     getPlayer: vi.fn(),

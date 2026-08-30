@@ -83,7 +83,7 @@ const FormationsWithResults = ({ match }: { match: IMatch }) => {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <SectionTitle>{t('match.playersVictoryTitle')}</SectionTitle>
-            {canEditPlayers && user.playerId > 0 && <EditIcon style={{ cursor: 'pointer' }} onClick={() => setShowEditOwn(!showEditOwn)} />}
+            {canEditPlayers && user.canEditFormation(match) && <EditIcon style={{ cursor: 'pointer' }} onClick={() => setShowEditOwn(!showEditOwn)} />}
           </div>
           {match
             .getOwnPlayers()
@@ -291,15 +291,14 @@ const OurFormationPreStart = ({ match }: { match: IMatch }) => {
   const [showEditOwn, setShowEditOwn] = useState(false);
   const user = useTtcSelector(selectUser);
   const playingPlayers = match.getPlayerFormation('onlyFinal').map(x => x.player);
+  const canEdit = canPickPlayers(match) && user.canEditFormation(match);
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <SectionTitle>{t('match.tabs.playersTitle')}</SectionTitle>
-          {playingPlayers.length > 0 && user.playerId > 0 && canPickPlayers(match) && (
-            <EditIcon style={{ cursor: 'pointer' }} onClick={() => setShowEditOwn(!showEditOwn)} />
-          )}
+          {playingPlayers.length > 0 && canEdit && <EditIcon style={{ cursor: 'pointer' }} onClick={() => setShowEditOwn(!showEditOwn)} />}
         </div>
         {playingPlayers.length > 0 && (
           <OverlayTrigger placement="top" overlay={<Tooltip>{t('match.tabs.scoresheet')}</Tooltip>}>
@@ -309,8 +308,8 @@ const OurFormationPreStart = ({ match }: { match: IMatch }) => {
           </OverlayTrigger>
         )}
       </div>
-      {playingPlayers.length === 0 && user.playerId > 0 && canPickPlayers(match) && <OwnPlayerSelector match={match} />}
-      {playingPlayers.length === 0 && user.playerId <= 0 && (
+      {playingPlayers.length === 0 && canEdit && <OwnPlayerSelector match={match} />}
+      {playingPlayers.length === 0 && !canEdit && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#666' }}>
           <Icon fa="fa fa-question-circle" />
           <span style={{ fontStyle: 'italic' }}>{t('match.formationUnknown')}</span>

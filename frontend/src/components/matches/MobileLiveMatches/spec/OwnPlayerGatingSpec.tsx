@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react';
+import dayjs from 'dayjs';
 import { vi } from 'vitest';
 import { renderWithProviders, TestRouter } from '../../../../utils/test-utils';
 import { MobileLiveMatchInProgress } from '../MobileLiveMatchInProgress';
@@ -8,7 +9,7 @@ import { UserRoles } from '../../../../models/UserModel';
 
 vi.mock('../../../../storeUtil', () => ({
   default: {
-    getTeam: vi.fn(),
+    getTeam: vi.fn().mockReturnValue({ getCaptainPlayerIds: () => [] }),
     getTeams: vi.fn().mockReturnValue([]),
     getClub: vi.fn(),
     getPlayer: vi.fn().mockReturnValue({ id: 1, alias: 'Test', getCompetition: () => ({ ranking: 'B6', position: 1 }) }),
@@ -94,12 +95,12 @@ const createMockMatch = (overrides: Partial<IMatch> = {}): IMatch =>
     ...overrides,
   }) as unknown as IMatch;
 
-const renderMatch = (match: IMatch, playerId: number) =>
+const renderMatch = (match: IMatch, playerId: number, security: string[] = []) =>
   renderWithProviders(
     <TestRouter>
       <MobileLiveMatchInProgress match={match} />
     </TestRouter>,
-    { preloadedState: { user: { playerId, teams: [1], security: [] }, readonlyMatches: [], players: testPlayers } },
+    { preloadedState: { user: { playerId, teams: [1], security }, readonlyMatches: [], players: testPlayers } },
   );
 
 const getEditIcons = () => document.querySelectorAll('.fa-pencil-square-o');
@@ -195,6 +196,44 @@ describe('OwnPlayerSelector gating (AC9: login, AC10: games played)', () => {
 
     it('shows no edit icons when games have been played', () => {
       renderMatch(inProgressWithGames(), 1);
+
+      expect(getEditIcons().length).toBe(0);
+    });
+  });
+  describe('formation edit window (issue #303/#305)', () => {
+    const matchTomorrow = () => createMockMatch({ date: dayjs().add(1, 'day') } as unknown as Partial<IMatch>);
+    const matchInOneHour = () => createMockMatch({ date: dayjs().add(1, 'hour') } as unknown as Partial<IMatch>);
+
+    it('hides "Selecteer spelers" for a regular player when the match is tomorrow', () => {
+      renderMatch(matchTomorrow(), 1);
+
+      expect(screen.queryByRole('button', { name: /selecteer spelers/i })).not.toBeInTheDocument();
+      expect(screen.getByText(/opstelling onbekend/i)).toBeInTheDocument();
+    });
+
+    it('shows "Selecteer spelers" for a board member when the match is tomorrow', () => {
+      renderMatch(matchTomorrow(), 1, ['CAN_MANAGETEAM']);
+
+      expect(screen.getByRole('button', { name: /selecteer spelers/i })).toBeInTheDocument();
+    });
+
+    it('shows "Selecteer spelers" for a regular player within 2 hours of the match', () => {
+      renderMatch(matchInOneHour(), 1);
+
+      expect(screen.getByRole('button', { name: /selecteer spelers/i })).toBeInTheDocument();
+    });
+
+    it('hides the own formation edit icon for a regular player when the match is tomorrow', () => {
+      renderMatch(
+        createMockMatch({
+          date: dayjs().add(1, 'day'),
+          getPlayerFormation: () =>
+            [
+              { id: 1, player: { id: 1, alias: 'Jean', getCompetition: () => ({ ranking: 'B6', position: 1 }) }, matchPlayer: { status: 'Major' } },
+            ] as unknown as IMatchPlayerInfo[],
+        } as unknown as Partial<IMatch>),
+        1,
+      );
 
       expect(getEditIcons().length).toBe(0);
     });
