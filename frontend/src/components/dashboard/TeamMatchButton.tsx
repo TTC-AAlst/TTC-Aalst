@@ -33,9 +33,9 @@ const getTeamMatchInfo = (team: ITeam): { match: IMatch | undefined; status: Mat
 };
 
 const getScoreColors = (match: IMatch): { bg: string; hoverBg: string } => {
-  const { score, isHomeMatch, isDerby } = match;
+  const { score, isHomeMatch } = match;
 
-  if (!score || isDerby) {
+  if (!score) {
     return { bg: '#6BCBFF', hoverBg: '#49bfff' };
   }
 

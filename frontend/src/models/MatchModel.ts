@@ -328,7 +328,10 @@ export default class MatchModel implements IMatch {
       };
 
       if (result.home && result.out) {
-        if (result.home.playerId || result.out.playerId) {
+        if (result.home.playerId && result.out.playerId) {
+          // Derby: both sides are ours, so this view of the match picks which half
+          result.ownPlayer = this.isHomeMatch ? result.home : result.out;
+        } else if (result.home.playerId || result.out.playerId) {
           result.ownPlayer = result.home.playerId ? result.home : result.out;
         } else {
           // readonlyMatch does not have ownPlayer

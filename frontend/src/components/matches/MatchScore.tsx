@@ -54,7 +54,7 @@ export const MatchScore = ({ showThrophy = true, noLink = false, ...props }: Mat
       if (!match || !match.score || (match.score.home === 0 && match.score.out === 0)) {
         return null;
       }
-      const classColor2 = props.match.isDerby ? 'match-won' : getClassName(match.isHomeMatch, match.score.home, match.score.out);
+      const classColor2 = getClassName(match.isHomeMatch, match.score.home, match.score.out);
       const badge = (
         <span className={cn('badge label-as-badge clickable', classColor2, props.className)} title={t('match.previousEncounterScore')} style={props.style}>
           <Icon fa="fa fa-long-arrow-left" style={{ marginRight: 7 }} />
@@ -69,11 +69,11 @@ export const MatchScore = ({ showThrophy = true, noLink = false, ...props }: Mat
   }
 
   const score = match.score || { home: 0, out: 0 };
-  const classColor = match.isDerby ? 'match-won' : getClassName(match.isHomeMatch, score.home, score.out);
+  const classColor = getClassName(match.isHomeMatch, score.home, score.out);
   const badge = (
     <span className={cn('badge label-as-badge clickable', props.className, classColor)} style={props.style}>
       <span>
-        {classColor === 'match-won' && !match.isDerby && viewport.width > 350 && showThrophy ? (
+        {classColor === 'match-won' && viewport.width > 350 && showThrophy ? (
           <TrophyIcon style={{ marginRight: 7, fontWeight: 'normal' }} color="#FFE568" />
         ) : null}
         {`${score.home} - ${score.out}`}

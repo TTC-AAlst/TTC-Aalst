@@ -41,3 +41,17 @@ describe('MatchScore — walkover', () => {
     expect(screen.getByText('WO')).toBeInTheDocument();
   });
 });
+
+describe('MatchScore — derby', () => {
+  const derby = (isHomeMatch: boolean) => woMatch({ scoreType: isHomeMatch ? 'Won' : 'Lost', score: { home: 10, out: 0 }, isDerby: true, isHomeMatch });
+
+  it('is won for the team that won it', () => {
+    render(derby(true), true);
+    expect(screen.getByText('10 - 0').closest('.label-as-badge')!.classList.contains('match-won')).toBe(true);
+  });
+
+  it('is lost for the team that lost it', () => {
+    render(derby(false), true);
+    expect(screen.getByText('10 - 0').closest('.label-as-badge')!.classList.contains('match-lost')).toBe(true);
+  });
+});

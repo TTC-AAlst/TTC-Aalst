@@ -90,6 +90,33 @@ public class FrenoyMatchTeamMappingTests
     }
 
     [Fact]
+    public void IsOwnTeamSide_Derby_HoldsForBothSides()
+    {
+        var derby = new MatchEntity { HomeTeamId = TeamAId, AwayTeamId = TeamBId };
+
+        Assert.True(FrenoyMatchesApi.IsOwnTeamSide(derby, isHomePlayer: true));
+        Assert.True(FrenoyMatchesApi.IsOwnTeamSide(derby, isHomePlayer: false));
+    }
+
+    [Fact]
+    public void IsOwnTeamSide_AwayMatch_HoldsForTheAwaySideOnly()
+    {
+        var match = new MatchEntity { HomeTeamId = null, AwayTeamId = TeamBId };
+
+        Assert.False(FrenoyMatchesApi.IsOwnTeamSide(match, isHomePlayer: true));
+        Assert.True(FrenoyMatchesApi.IsOwnTeamSide(match, isHomePlayer: false));
+    }
+
+    [Fact]
+    public void IsOwnTeamSide_MatchWeDidNotPlay_HoldsForNeitherSide()
+    {
+        var match = new MatchEntity();
+
+        Assert.False(FrenoyMatchesApi.IsOwnTeamSide(match, isHomePlayer: true));
+        Assert.False(FrenoyMatchesApi.IsOwnTeamSide(match, isHomePlayer: false));
+    }
+
+    [Fact]
     public void MapOwnTeams_FreeWeek_MapsPlayingTeamOnly()
     {
         var match = new MatchEntity

@@ -334,6 +334,12 @@ public class FrenoyMatchesApi : FrenoyApiBase
         entity.AwayTeamId = FindOwnTeamId(ownTeamsInDivision, entity.AwayClubId, entity.AwayTeamCode);
     }
 
+    /// <summary>
+    /// Both sides of a derby are ours, so both formations link to our players.
+    /// </summary>
+    public static bool IsOwnTeamSide(MatchEntity match, bool isHomePlayer)
+        => isHomePlayer ? match.HomeTeamId.HasValue : match.AwayTeamId.HasValue;
+
     private static int? FindOwnTeamId(IReadOnlyCollection<TeamEntity> ownTeamsInDivision, int clubId, string? teamCode)
     {
         if (clubId != Constants.OwnClubId || string.IsNullOrEmpty(teamCode))
@@ -561,7 +567,7 @@ public class FrenoyMatchesApi : FrenoyApiBase
             }
 
             PlayerEntity? dbPlayer = null;
-            if (match.IsHomeMatch.HasValue && ((match.IsHomeMatch.Value && isHomePlayer) || (!match.IsHomeMatch.Value && !isHomePlayer)))
+            if (IsOwnTeamSide(match, isHomePlayer))
             {
                 if (_isVttl)
                 {
