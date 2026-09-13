@@ -145,6 +145,9 @@ internal class TeamsExcelCreator
 
     #region Model Creation
     public static TeamsExcelCreator CreateFormation(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs)
+        => new(BuildFormationModel(teams, matches, players, clubs));
+
+    internal static List<TeamExcelModel> BuildFormationModel(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs)
     {
         var result = new List<TeamExcelModel>();
         foreach (var team in teams.OrderByDescending(x => x.Competition).ThenBy(x => x.TeamCode))
@@ -158,7 +161,11 @@ internal class TeamsExcelCreator
                 teamModel.Players.Add(new TeamPlayerExcelModel(player.Alias ?? player.FirstName ?? "???", teamPlayer.PlayerType, ranking ?? ""));
             }
 
-            foreach (var match in matches.Where(x => x.FrenoyDivisionId == team.FrenoyDivisionId).OrderBy(x => x.Date))
+            var teamMatches = matches
+                .Where(x => x.HomeTeamId == team.Id || x.AwayTeamId == team.Id)
+                .OrderBy(x => x.Date);
+
+            foreach (var match in teamMatches)
             {
                 if (match.AwayClubId == 0 || match.HomeClubId == 0)
                 {
@@ -166,8 +173,12 @@ internal class TeamsExcelCreator
                     continue;
                 }
 
+                // Both sides of a derby are ours, so a sheet only wants its own half
+                bool isHomeTeam = match.HomeTeamId == team.Id;
+                var ourPlayers = match.Players.Where(x => x.Home == isHomeTeam).ToArray();
+
                 var teamMatch = new TeamMatchExcelModel(match, clubs);
-                foreach (var matchPlayer in match.Players.Where(x => x.Status != PlayerMatchStatus.Captain && x.Status != PlayerMatchStatus.Major))
+                foreach (var matchPlayer in ourPlayers.Where(x => x.Status != PlayerMatchStatus.Captain && x.Status != PlayerMatchStatus.Major))
                 {
                     if (!teamMatch.PlayerDecisions.ContainsKey(matchPlayer.Name) && matchPlayer.Status != null)
                     {
@@ -176,7 +187,7 @@ internal class TeamsExcelCreator
                 }
                 if (!string.IsNullOrWhiteSpace(match.Block))
                 {
-                    foreach (var matchPlayer in match.Players.Where(x => x.Status == match.Block))
+                    foreach (var matchPlayer in ourPlayers.Where(x => x.Status == match.Block))
                     {
                         if (!teamMatch.CaptainDecisions.Contains(matchPlayer.Name))
                         {
@@ -191,7 +202,7 @@ internal class TeamsExcelCreator
             result.Add(teamModel);
         }
 
-        return new TeamsExcelCreator(result);
+        return result;
     }
     #endregion
 }
