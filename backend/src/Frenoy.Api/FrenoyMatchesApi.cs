@@ -108,7 +108,7 @@ public class FrenoyMatchesApi : FrenoyApiBase
             }
         });
 
-        await SyncTeamMatches(team.Id, team.FrenoyDivisionId, matches.GetMatchesResponse);
+        await SyncTeamMatches(team.FrenoyDivisionId, matches.GetMatchesResponse);
     }
 
     public async Task<bool> SyncMatchDetails(MatchEntity matchEntity, TeamMatchEntryType? frenoyMatch = null)
@@ -132,8 +132,8 @@ public class FrenoyMatchesApi : FrenoyApiBase
 
                 frenoyMatch = matches.GetMatchesResponse.TeamMatchesEntries[0];
 
-                int? ourTeamId = (matchEntity.HomeTeam ?? matchEntity.AwayTeam)?.Id;
-                await MapMatch(matchEntity, ourTeamId, matchEntity.FrenoyDivisionId, frenoyMatch, matchEntity.FrenoySeason);
+                var ownTeams = await GetOwnTeamsInDivision(matchEntity.FrenoyDivisionId);
+                await MapMatch(matchEntity, ownTeams, matchEntity.FrenoyDivisionId, frenoyMatch, matchEntity.FrenoySeason);
             }
 
             if (matchEntity.ShouldBePlayed)
@@ -207,7 +207,7 @@ public class FrenoyMatchesApi : FrenoyApiBase
                     DivisionId = team.FrenoyDivisionId.ToString()
                 }
             });
-            await SyncTeamMatches(team.Id, team.FrenoyDivisionId, matches.GetMatchesResponse);
+            await SyncTeamMatches(team.FrenoyDivisionId, matches.GetMatchesResponse);
         }
     }
 
@@ -242,9 +242,10 @@ public class FrenoyMatchesApi : FrenoyApiBase
     #endregion
 
     #region Match Creation
-    private async Task SyncTeamMatches(int? teamId, int frenoyDivisionId, GetMatchesResponse matches, int? frenoySeason = null)
+    private async Task SyncTeamMatches(int frenoyDivisionId, GetMatchesResponse matches, int? frenoySeason = null)
     {
         frenoySeason ??= _db.CurrentFrenoySeason;
+        var ownTeams = await GetOwnTeamsInDivision(frenoyDivisionId);
 
         foreach (TeamMatchEntryType frenoyMatch in matches.TeamMatchesEntries)
         {
@@ -253,9 +254,7 @@ public class FrenoyMatchesApi : FrenoyApiBase
             if (matchEntity == null)
             {
                 matchEntity = new MatchEntity();
-                // SyncMatchDetails does a MapMatch, but it expects teamId which
-                // is only correct when the match already exists in the database.
-                await MapMatch(matchEntity, teamId, frenoyDivisionId, frenoyMatch, frenoySeason.Value);
+                await MapMatch(matchEntity, ownTeams, frenoyDivisionId, frenoyMatch, frenoySeason.Value);
                 if (ForceResync)
                 {
                     await SyncMatchDetails(matchEntity, frenoyMatch);
@@ -271,14 +270,14 @@ public class FrenoyMatchesApi : FrenoyApiBase
                 }
                 else
                 {
-                    await MapMatch(matchEntity, teamId, frenoyDivisionId, frenoyMatch, frenoySeason);
+                    await MapMatch(matchEntity, ownTeams, frenoyDivisionId, frenoyMatch, frenoySeason);
                 }
             }
             await CommitChanges();
         }
     }
 
-    private async Task MapMatch(MatchEntity entity, int? teamId, int frenoyDivisionId, TeamMatchEntryType frenoyMatch, int? frenoySeason)
+    private async Task MapMatch(MatchEntity entity, IReadOnlyCollection<TeamEntity> ownTeamsInDivision, int frenoyDivisionId, TeamMatchEntryType frenoyMatch, int? frenoySeason)
     {
         frenoySeason ??= _db.CurrentFrenoySeason;
 
@@ -319,22 +318,30 @@ public class FrenoyMatchesApi : FrenoyApiBase
             }
         }
 
-        //TODO: The derby problem: both Home and AwayClubId are OwnClubId
-        // do not pass teamId here but find out what the Team is based on HomeClubId and HomeTeamCode
-        if (teamId.HasValue)
+        MapOwnTeams(entity, ownTeamsInDivision);
+    }
+
+    private async Task<TeamEntity[]> GetOwnTeamsInDivision(int frenoyDivisionId)
+        => await _db.Teams.Where(x => x.FrenoyDivisionId == frenoyDivisionId).ToArrayAsync();
+
+    /// <summary>
+    /// Both sides are a TTC Aalst team when two of our teams share a division (derby),
+    /// so the match itself decides which of our teams plays it - not whoever triggered the sync.
+    /// </summary>
+    public static void MapOwnTeams(MatchEntity entity, IReadOnlyCollection<TeamEntity> ownTeamsInDivision)
+    {
+        entity.HomeTeamId = FindOwnTeamId(ownTeamsInDivision, entity.HomeClubId, entity.HomeTeamCode);
+        entity.AwayTeamId = FindOwnTeamId(ownTeamsInDivision, entity.AwayClubId, entity.AwayTeamCode);
+    }
+
+    private static int? FindOwnTeamId(IReadOnlyCollection<TeamEntity> ownTeamsInDivision, int clubId, string? teamCode)
+    {
+        if (clubId != Constants.OwnClubId || string.IsNullOrEmpty(teamCode))
         {
-            Debug.Assert(entity.HomeClubId != Constants.OwnClubId || entity.AwayClubId != Constants.OwnClubId, "Derby Problem!!");
-            if (entity.HomeClubId == Constants.OwnClubId)
-            {
-                entity.HomeTeamId = teamId;
-                entity.AwayTeamId = null;
-            }
-            else if (entity.AwayClubId == Constants.OwnClubId)
-            {
-                entity.AwayTeamId = teamId;
-                entity.HomeTeamId = null;
-            }
+            return null;
         }
+
+        return ownTeamsInDivision.SingleOrDefault(x => x.TeamCode == teamCode)?.Id;
     }
 
     /// <summary>
