@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "lsp": {
+      "command": "lsp-mcp-server",
+      "env": {
+        "LSP_LOG_LEVEL": "info"
+      }
+    }
+  }
+}

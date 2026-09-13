@@ -1,0 +1,50 @@
+{
+  "servers": [
+    {
+      "id": "typescript",
+      "extensions": [
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs"
+      ],
+      "languageIds": [
+        "typescript",
+        "typescriptreact",
+        "javascript",
+        "javascriptreact"
+      ],
+      "command": "typescript-language-server",
+      "args": [
+        "--stdio"
+      ],
+      "rootPatterns": [
+        "tsconfig.json",
+        "package.json"
+      ]
+    },
+    {
+      "id": "csharp",
+      "extensions": [
+        ".cs"
+      ],
+      "languageIds": [
+        "csharp"
+      ],
+      "command": "csharp-ls",
+      "args": [
+        "--solution",
+        "backend/src/Ttc.sln"
+      ],
+      "rootPatterns": [
+        "Ttc.sln"
+      ]
+    }
+  ],
+  "requestTimeout": 60000,
+  "autoStart": true,
+  "logLevel": "info",
+  "idleTimeout": 1800000
+}
