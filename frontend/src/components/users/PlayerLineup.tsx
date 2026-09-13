@@ -124,7 +124,7 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
                   <Button style={{ marginBottom: 5, width: 90 }} variant="info" onClick={getOnChangePlaying('Maybe')}>
                     {t('profile.play.canMaybe')}
                   </Button>
-                  <Button style={{ width: 90 }} onClick={getOnChangePlaying('DontKnow')}>
+                  <Button style={{ width: 90 }} variant="secondary" onClick={getOnChangePlaying('DontKnow')}>
                     {t('profile.play.canDontKnow')}
                   </Button>
                   {showCommentId !== match.id ? (

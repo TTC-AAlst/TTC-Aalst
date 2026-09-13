@@ -152,6 +152,10 @@ describe('getPlayingStatusClass', () => {
     expect(getPlayingStatusClass('Maybe')).toBe('info');
   });
 
+  it('returns secondary for DontKnow', () => {
+    expect(getPlayingStatusClass('DontKnow')).toBe('secondary');
+  });
+
   it('returns undefined for empty string', () => {
     expect(getPlayingStatusClass('')).toBeUndefined();
   });

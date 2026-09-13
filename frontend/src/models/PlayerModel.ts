@@ -126,7 +126,7 @@ export function createFrenoyLinkByUniqueId(comp: Competition, uniqueId: number):
   return `https://ttonline.sporta.be/${`000000${uniqueId}`.slice(-6)}`;
 }
 
-export function getPlayingStatusClass(playingStatus?: MatchPlayerStatus | ''): undefined | 'success' | 'danger' | 'info' | 'warning' {
+export function getPlayingStatusClass(playingStatus?: MatchPlayerStatus | ''): undefined | 'success' | 'danger' | 'info' | 'warning' | 'secondary' {
   if (!playingStatus) {
     return undefined;
   }
@@ -141,6 +141,8 @@ export function getPlayingStatusClass(playingStatus?: MatchPlayerStatus | ''): u
       return 'danger';
     case 'Maybe':
       return 'info';
+    case 'DontKnow':
+      return 'secondary';
     default:
       return undefined;
   }

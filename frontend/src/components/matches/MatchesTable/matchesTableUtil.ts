@@ -1,5 +1,4 @@
-import { IMatch, IMatchPlayerInfo, ITeam, ITeamPlayerInfo } from '../../../models/model-interfaces';
-import { PlayerRanking } from '../../../models/utils/rankingSorter';
+import { IMatch, ITeam, ITeamPlayerInfo, PickedPlayer } from '../../../models/model-interfaces';
 
 export const tableMatchViewportWidths = {
   frenoyMatchId: 2000,
@@ -33,21 +32,12 @@ export function getRowStripeColor(index: number, match: IMatch, playerId: number
   return index % 2 === 0 ? '#f9f9f9' : undefined;
 }
 
-export const toDontKnowPlayer = (match: IMatch, teamPlayer: ITeamPlayerInfo): IMatchPlayerInfo => ({
+export const toUndecidedPlayer = (match: IMatch, teamPlayer: ITeamPlayerInfo): PickedPlayer => ({
   id: teamPlayer.player.id,
+  matchId: match.id,
   player: teamPlayer.player,
   matchPlayer: {
-    id: 0,
-    matchId: match.id,
-    status: 'DontKnow',
+    status: '',
     statusNote: '',
-    position: 0,
-    name: teamPlayer.player.name,
-    ranking: (teamPlayer.player[match.competition.toLowerCase() as 'vttl' | 'sporta']?.ranking || 'NG') as PlayerRanking,
-    uniqueIndex: 0,
-    won: 0,
-    home: true,
-    playerId: teamPlayer.player.id,
-    alias: teamPlayer.player.alias,
   },
 });

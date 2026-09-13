@@ -9,7 +9,7 @@ import { useViewport } from '../../utils/hooks/useViewport';
 import { editMatchPlayers } from '../../reducers/matchesReducer';
 import { ReadOnlyMatchesTable } from './MatchesTable/ReadOnlyMatchesTable';
 import { MatchesTableDateCell, MatchesTableFrenoyLinkCell, MatchesTableHeader, MatchesTableMatchVsCell } from './MatchesTable/MatchesTableCells';
-import { getRowStripeColor, toDontKnowPlayer } from './MatchesTable/matchesTableUtil';
+import { getRowStripeColor, toUndecidedPlayer } from './MatchesTable/matchesTableUtil';
 import { MatchCommentForm, MatchesTableCommentRow, MatchesTableEditPlayersRow } from './MatchesTable/EditMatchesTableCells';
 import { selectUser, useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
 
@@ -43,10 +43,10 @@ export const MatchesTable = ({ matches, allowOpponentOnly, editMode, striped, ow
     const team = match.getTeam();
     const playerChoices = match.getPlayerFormation('Play');
     const playerChoicesPlayerIds = playerChoices.map(x => x.player.id);
-    const playersWithoutChoice = team
+    const playersWithoutChoice: PickedPlayer[] = team
       .getPlayers()
       .filter(x => playerChoicesPlayerIds.indexOf(x.player.id) === -1)
-      .map(x => toDontKnowPlayer(match, x));
+      .map(x => toUndecidedPlayer(match, x));
 
     let newPlayersEdit = match.getPlayerFormation(userStatus);
     if (newPlayersEdit.length === 0) {
@@ -56,7 +56,7 @@ export const MatchesTable = ({ matches, allowOpponentOnly, editMode, striped, ow
     }
 
     setEditMatch(match);
-    setPlayers(playerChoices.concat(playersWithoutChoice).map(x => ({ ...x, matchId: match.id })));
+    setPlayers([...playerChoices.map(x => ({ ...x, matchId: match.id })), ...playersWithoutChoice]);
     setPlayersEdit(newPlayersEdit.map(pe => ({ ...pe, matchId: match.id })));
     setComment({ edit: false, value: match.formationComment || '' });
   };
