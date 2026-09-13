@@ -4,6 +4,7 @@ import { ITeam, IClub, IPlayer, IMatch, IMatchPlayer, ITeamOpponent } from './mo
 import PlayerModel from './models/PlayerModel';
 import TeamModel from './models/TeamModel';
 import MatchModel from './models/MatchModel';
+import { mirrorDerbyMatch } from './models/utils/mirrorDerbyMatch';
 
 /** How many players of a ranking beat */
 interface IOpponentFormationRankingInfo {
@@ -111,6 +112,19 @@ const util = {
   matches: {
     getAllMatches(): IMatch[] {
       return util.getMatches();
+    },
+
+    getTeamMatches(teamId: number): IMatch[] {
+      const { matches, teams } = store.getState();
+      return matches
+        .filter(m => m.teamId === teamId || m.opponentTeamId === teamId)
+        .map(m => {
+          if (m.teamId === teamId) {
+            return new MatchModel(m);
+          }
+          const ownTeamCode = teams.find(team => team.id === m.teamId)?.teamCode ?? '';
+          return new MatchModel(mirrorDerbyMatch(m, ownTeamCode));
+        });
     },
   },
 };

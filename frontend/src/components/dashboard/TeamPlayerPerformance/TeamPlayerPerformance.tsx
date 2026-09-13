@@ -4,7 +4,7 @@ import { Strike } from '../../controls/controls/Strike';
 import { Icon } from '../../controls/Icons/Icon';
 import { PlayerPerformanceCard, PlayerCompetitionStats } from './PlayerPerformanceCard';
 import { selectMatches, selectPlayers, selectTeams, selectUser, selectUserTeams, useTtcSelector } from '../../../utils/hooks/storeHooks';
-import { IPlayer, IMatch, ITeam } from '../../../models/model-interfaces';
+import { IPlayer, ITeam } from '../../../models/model-interfaces';
 import {
   GameResult,
   MatchGameResults,
@@ -32,7 +32,7 @@ type PlayerWithCompetitionStats = {
   badgeType: PerformanceBadgeType | null;
 };
 
-const collectStatsForPlayers = (playerIds: Set<number>, allPlayers: IPlayer[], teams: ITeam[], allMatches: IMatch[]): PlayerWithCompetitionStats[] => {
+const collectStatsForPlayers = (playerIds: Set<number>, allPlayers: IPlayer[], teams: ITeam[]): PlayerWithCompetitionStats[] => {
   const statsByPlayer = new Map<
     number,
     {
@@ -49,7 +49,7 @@ const collectStatsForPlayers = (playerIds: Set<number>, allPlayers: IPlayer[], t
     if (!playerInfo) return;
 
     teams.forEach(team => {
-      const teamMatches = allMatches.filter(m => m.teamId === team.id && m.isSyncedWithFrenoy);
+      const teamMatches = team.getMatches().filter(m => m.isSyncedWithFrenoy);
 
       const ranking = team.competition === 'Sporta' ? playerInfo.sporta?.ranking : playerInfo.vttl?.ranking;
 
@@ -145,7 +145,7 @@ export const TeamPlayerPerformance = () => {
   // Find all players that play in the user's teams
   const playerIdsInUserTeams = new Set<number>();
   userTeams.forEach(team => {
-    const teamMatches = allMatches.filter(m => m.teamId === team.id && m.isSyncedWithFrenoy);
+    const teamMatches = team.getMatches().filter(m => m.isSyncedWithFrenoy);
     teamMatches.forEach(match => {
       match.getGameMatches().forEach(game => {
         if (!game.isDoubles && 'playerId' in game.ownPlayer && game.ownPlayer.playerId) {
@@ -158,7 +158,7 @@ export const TeamPlayerPerformance = () => {
   // Find all players that play in ANY team (for "other players")
   const allPlayerIdsInTeams = new Set<number>();
   teams.forEach(team => {
-    const teamMatches = allMatches.filter(m => m.teamId === team.id && m.isSyncedWithFrenoy);
+    const teamMatches = team.getMatches().filter(m => m.isSyncedWithFrenoy);
     teamMatches.forEach(match => {
       match.getGameMatches().forEach(game => {
         if (!game.isDoubles && 'playerId' in game.ownPlayer && game.ownPlayer.playerId) {
@@ -191,7 +191,7 @@ export const TeamPlayerPerformance = () => {
     });
   }
 
-  const playerStats = collectStatsForPlayers(playerIdsInUserTeams, allPlayers, teams, allMatches);
+  const playerStats = collectStatsForPlayers(playerIdsInUserTeams, allPlayers, teams);
 
   // Sort: current user first, then by matches played together
   playerStats.sort((a, b) => {
@@ -202,7 +202,7 @@ export const TeamPlayerPerformance = () => {
     return bMatches - aMatches;
   });
 
-  const otherPlayerStats = showOtherPlayers ? collectStatsForPlayers(otherPlayerIds, allPlayers, teams, allMatches) : [];
+  const otherPlayerStats = showOtherPlayers ? collectStatsForPlayers(otherPlayerIds, allPlayers, teams) : [];
 
   const filterStats = (stats: PlayerWithCompetitionStats[]): PlayerWithCompetitionStats[] => {
     if (!hasActiveFilters) return stats;

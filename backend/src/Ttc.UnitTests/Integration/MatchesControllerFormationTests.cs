@@ -17,8 +17,11 @@ public class MatchesControllerFormationTests : IntegrationTestBase
     private const int PlainPlayerId = 901;
     private const int BoardPlayerId = 902;
     private const int CaptainPlayerId = 903;
+    private const int DerbyTeamId = 904;
+    private const int DerbyCaptainPlayerId = 905;
     private const int FarAwayMatchId = 910;
     private const int ImminentMatchId = 911;
+    private const int DerbyMatchId = 912;
 
     public MatchesControllerFormationTests(TtcWebApplicationFactory factory) : base(factory)
     {
@@ -42,12 +45,16 @@ public class MatchesControllerFormationTests : IntegrationTestBase
         if (!await context.Teams.AnyAsync(x => x.Id == TeamId))
         {
             context.Teams.Add(new TeamEntity { Id = TeamId, Competition = Competition.Vttl, Year = 2024, TeamCode = "A" });
+            context.Teams.Add(new TeamEntity { Id = DerbyTeamId, Competition = Competition.Vttl, Year = 2024, TeamCode = "B" });
             context.Players.Add(NewPlayer(PlainPlayerId, "Plain", PlayerAccess.Player));
             context.Players.Add(NewPlayer(BoardPlayerId, "Board", PlayerAccess.Board));
             context.Players.Add(NewPlayer(CaptainPlayerId, "Captain", PlayerAccess.Player));
+            context.Players.Add(NewPlayer(DerbyCaptainPlayerId, "DerbyCaptain", PlayerAccess.Player));
             context.TeamPlayers.Add(new TeamPlayerEntity { Id = 900, TeamId = TeamId, PlayerId = CaptainPlayerId, PlayerType = TeamPlayerType.Captain });
+            context.TeamPlayers.Add(new TeamPlayerEntity { Id = 901, TeamId = DerbyTeamId, PlayerId = DerbyCaptainPlayerId, PlayerType = TeamPlayerType.Captain });
             context.Matches.Add(NewMatch(FarAwayMatchId, DateTime.Now.AddDays(5)));
             context.Matches.Add(NewMatch(ImminentMatchId, DateTime.Now.AddHours(1)));
+            context.Matches.Add(NewDerbyMatch(DerbyMatchId, DateTime.Now.AddDays(5)));
             await context.SaveChangesAsync();
         }
     }
@@ -77,6 +84,14 @@ public class MatchesControllerFormationTests : IntegrationTestBase
         AwayTeamCode = "B",
     };
 
+    private static MatchEntity NewDerbyMatch(int id, DateTime date)
+    {
+        var match = NewMatch(id, date);
+        match.AwayTeamId = DerbyTeamId;
+        match.AwayClubId = Constants.OwnClubId;
+        return match;
+    }
+
     private HttpClient CreateClientFor(int playerId)
     {
         using var scope = Factory.Services.CreateScope();
@@ -88,10 +103,11 @@ public class MatchesControllerFormationTests : IntegrationTestBase
         return client;
     }
 
-    private static object Formation(int matchId) => new
+    private static object Formation(int matchId, int teamId = TeamId, int playerId = PlainPlayerId) => new
     {
         MatchId = matchId,
-        PlayerIds = new[] { PlainPlayerId },
+        TeamId = teamId,
+        PlayerIds = new[] { playerId },
         NewStatus = "Major",
         BlockAlso = true,
         Comment = "",
@@ -139,5 +155,30 @@ public class MatchesControllerFormationTests : IntegrationTestBase
         var response = await client.PostAsJsonAsync("api/matches/EditMatchPlayers", Formation(FarAwayMatchId));
 
         response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task EditMatchPlayers_DerbyAwayTeamCaptain_IsAllowed()
+    {
+        using var client = CreateClientFor(DerbyCaptainPlayerId);
+
+        var response = await client.PostAsJsonAsync("api/matches/EditMatchPlayers", Formation(DerbyMatchId, DerbyTeamId, DerbyCaptainPlayerId));
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task EditMatchPlayers_Derby_LeavesTheOtherOwnTeamFormationAlone()
+    {
+        using var client = CreateClientFor(BoardPlayerId);
+
+        (await client.PostAsJsonAsync("api/matches/EditMatchPlayers", Formation(DerbyMatchId, TeamId, PlainPlayerId))).EnsureSuccessStatusCode();
+        var response = await client.PostAsJsonAsync("api/matches/EditMatchPlayers", Formation(DerbyMatchId, DerbyTeamId, CaptainPlayerId));
+
+        response.EnsureSuccessStatusCode();
+        await using var context = GetDbContext();
+        var players = await context.MatchPlayers.Where(x => x.MatchId == DerbyMatchId).ToArrayAsync();
+        Assert.Equal(PlainPlayerId, Assert.Single(players, x => x.Home).PlayerId);
+        Assert.Equal(CaptainPlayerId, Assert.Single(players, x => !x.Home).PlayerId);
     }
 }

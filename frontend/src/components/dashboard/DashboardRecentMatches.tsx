@@ -32,8 +32,8 @@ export const DashboardRecentMatches = () => {
     })
     .sort((a, b) => b.date.valueOf() - a.date.valueOf());
 
-  let userMatches = recentMatches.filter(match => userTeamIds.includes(match.teamId));
-  let otherMatches = recentMatches.filter(match => !userTeamIds.includes(match.teamId));
+  let userMatches = recentMatches.filter(match => userTeamIds.some(teamId => match.isPlayedBy(teamId)));
+  let otherMatches = recentMatches.filter(match => !userTeamIds.some(teamId => match.isPlayedBy(teamId)));
 
   // If no user matches but there are other matches, show top 2 from other matches
   if (userMatches.length === 0 && otherMatches.length > 0) {

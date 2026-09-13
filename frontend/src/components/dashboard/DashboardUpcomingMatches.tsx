@@ -53,8 +53,8 @@ export const DashboardUpcomingMatches = () => {
   };
 
   // User matches: user's team OR user is in formation
-  const userMatches = upcomingMatches.filter(match => userTeamIds.includes(match.teamId) || isUserInFormation(match));
-  const otherMatches = upcomingMatches.filter(match => !userTeamIds.includes(match.teamId) && !isUserInFormation(match));
+  const userMatches = upcomingMatches.filter(match => userTeamIds.some(teamId => match.isPlayedBy(teamId)) || isUserInFormation(match));
+  const otherMatches = upcomingMatches.filter(match => !userTeamIds.some(teamId => match.isPlayedBy(teamId)) && !isUserInFormation(match));
 
   if (upcomingMatches.length === 0 && matchesBeingPlayed.length === 0) {
     return null;

@@ -179,6 +179,7 @@ internal static class EntityMapper
             FrenoyDivisionId = src.FrenoyDivisionId,
             Block = src.Block,
             TeamId = src.HomeTeamId ?? src.AwayTeamId ?? 0,
+            OpponentTeamId = src.HomeTeamId.HasValue ? src.AwayTeamId : null,
             IsHomeMatch = src.IsHomeMatch,
             Opponent = new OpposingTeam
             {

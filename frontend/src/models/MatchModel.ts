@@ -56,6 +56,7 @@ export default class MatchModel implements IMatch {
   // IMatchOwn
   isHomeMatch = false;
   teamId = 0;
+  opponentTeamId: number | null = null;
   description = '';
   reportPlayerId = 0;
   block = '' as MatchPlayerStatus | '';
@@ -96,6 +97,7 @@ export default class MatchModel implements IMatch {
       // TTC Aalst Match
       this.isHomeMatch = json.isHomeMatch!;
       this.teamId = json.teamId!;
+      this.opponentTeamId = json.opponentTeamId ?? null;
       this.description = json.description!;
       this.reportPlayerId = json.reportPlayerId!;
       this.block = json.block!;
@@ -199,6 +201,11 @@ export default class MatchModel implements IMatch {
       return '';
     }
     return `${this.score.home} - ${this.score.out}`;
+  }
+
+  /** A derby is played by two of our teams */
+  isPlayedBy(teamId: number): boolean {
+    return this.teamId === teamId || this.opponentTeamId === teamId;
   }
 
   getTeam(): ITeam {

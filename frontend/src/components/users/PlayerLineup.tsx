@@ -50,6 +50,8 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
   const allMatchesToCome = teams
     .map(team => team.getMatches())
     .flat()
+    // A derby is in the calendar of both our teams, but a player answers it once
+    .filter((match, index, all) => all.findIndex(m => m.id === match.id) === index)
     .filter(match => dayjs().isBefore(match.date))
     .sort((a, b) => a.date.valueOf() - b.date.valueOf());
 

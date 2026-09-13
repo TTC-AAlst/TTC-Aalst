@@ -222,6 +222,7 @@ describe('OwnPlayerSelector', () => {
 
     expect(mockPost).toHaveBeenCalledWith('/matches/EditMatchPlayers', {
       matchId: 1,
+      teamId: 1,
       playerIds: [1, 2],
       blockAlso: true,
       newStatus: 'Major',

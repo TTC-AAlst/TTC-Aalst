@@ -79,14 +79,18 @@ export const Teams = () => {
     return url;
   };
 
-  const renderTabContent = (teamCode: string) => {
-    let team = teams.find(x => x.teamCode === teamCode && x.competition === params.competition);
-    if (!team) {
-      // BUG: When navigating from Vttl F to Sporta, there is no Sporta F
-      //      In the TabbedContainer, no tab header is selected
-      const newTeamCode = getDefaultTeam();
-      team = teams.find(x => x.teamCode === newTeamCode && x.competition === params.competition)!;
+  const findTeam = (teamCode: string) => {
+    const team = teams.find(x => x.teamCode === teamCode && x.competition === params.competition);
+    if (team) {
+      return team;
     }
+    // BUG: When navigating from Vttl F to Sporta, there is no Sporta F
+    //      In the TabbedContainer, no tab header is selected
+    return teams.find(x => x.teamCode === getDefaultTeam() && x.competition === params.competition)!;
+  };
+
+  const renderTabContent = (teamCode: string) => {
+    const team = findTeam(teamCode);
 
     const transView = (key: string) => t(`teamCalendar.view.${key}`);
     const viewsKeys = ['main', 'week', 'matches', 'ranking', 'players'];
@@ -158,10 +162,12 @@ export const Teams = () => {
       perMatch[ply.matchId]?.push(ply);
     });
 
+    const team = findTeam(params.tabKey || getDefaultTeam());
     Object.entries(perMatch).forEach(([matchId, plyInfos]) => {
       dispatch(
         editMatchPlayers({
           matchId: parseInt(matchId, 10),
+          teamId: team.id,
           playerIds: plyInfos.map(x => x.id),
           blockAlso,
           newStatus: playerStatus,

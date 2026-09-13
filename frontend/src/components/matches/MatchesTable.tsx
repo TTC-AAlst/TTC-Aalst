@@ -65,6 +65,7 @@ export const MatchesTable = ({ matches, allowOpponentOnly, editMode, striped, ow
     dispatch(
       editMatchPlayers({
         matchId: editMatch!.id,
+        teamId: editMatch!.teamId,
         playerIds: playersEdit.map(x => x.id),
         blockAlso: !!block,
         newStatus: block || userStatus,

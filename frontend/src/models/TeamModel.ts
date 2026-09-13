@@ -134,7 +134,7 @@ export default class TeamModel implements ITeam {
   }
 
   getMatches(): IMatch[] {
-    return storeUtil.matches.getAllMatches().filter(match => match.teamId === this.id);
+    return storeUtil.matches.getTeamMatches(this.id);
   }
 
   getPlayerStats(): ITeamPlayerStats[] {

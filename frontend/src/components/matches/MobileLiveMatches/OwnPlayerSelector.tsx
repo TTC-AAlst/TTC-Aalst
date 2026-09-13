@@ -106,6 +106,7 @@ export const OwnPlayerSelector = ({ match: matchProp, initialOpen = false, onClo
       await dispatch(
         editMatchPlayers({
           matchId: matchProp.id,
+          teamId: matchProp.teamId,
           playerIds: toSave.map(p => p.id),
           blockAlso: true,
           newStatus: 'Major',

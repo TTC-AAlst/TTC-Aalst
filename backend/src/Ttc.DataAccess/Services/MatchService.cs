@@ -27,7 +27,8 @@ public class MatchService
         _userProvider = userProvider;
     }
 
-    public async Task<bool> MayEditFormation(int matchId)
+    /// <param name="teamId">Which of our teams is editing. Required for a derby, where both sides are ours.</param>
+    public async Task<bool> MayEditFormation(int matchId, int? teamId = null)
     {
         int? playerId = _userProvider.PlayerId;
         if (!playerId.HasValue)
@@ -37,6 +38,12 @@ public class MatchService
 
         var match = await _context.Matches.SingleOrDefaultAsync(x => x.Id == matchId);
         if (match == null)
+        {
+            return false;
+        }
+
+        int[] matchTeamIds = new[] { match.HomeTeamId, match.AwayTeamId }.OfType<int>().ToArray();
+        if (teamId.HasValue && !matchTeamIds.Contains(teamId.Value))
         {
             return false;
         }
@@ -52,9 +59,9 @@ public class MatchService
             return true;
         }
 
-        int? teamId = match.HomeTeamId ?? match.AwayTeamId;
+        int[] captainOf = teamId.HasValue ? [teamId.Value] : matchTeamIds;
         return await _context.TeamPlayers
-            .AnyAsync(x => x.TeamId == teamId && x.PlayerId == playerId && x.PlayerType == TeamPlayerType.Captain);
+            .AnyAsync(x => captainOf.Contains(x.TeamId) && x.PlayerId == playerId && x.PlayerType == TeamPlayerType.Captain);
     }
 
     #region Getters
@@ -251,7 +258,7 @@ public class MatchService
     /// Set all players for the match to Captain/Major
     /// </summary>
     /// <param name="blockAlso">Also block the match to the newStatus level</param>
-    public async Task<Match> EditMatchPlayers(int matchId, int[] playerIds, string newStatus, bool blockAlso, string comment)
+    public async Task<Match> EditMatchPlayers(int matchId, int teamId, int[] playerIds, string newStatus, bool blockAlso, string comment)
     {
         Debug.Assert(newStatus is PlayerMatchStatus.Captain or PlayerMatchStatus.Major);
         var match = await _context.Matches.SingleAsync(x => x.Id == matchId);
@@ -260,10 +267,11 @@ public class MatchService
             return await GetMatch(matchId);
         }
 
+        bool isHomeTeam = match.HomeTeamId == teamId;
         match.FormationComment = comment;
         match.Block = blockAlso && playerIds.Any() ? newStatus : null;
         var existingPlayers = await _context.MatchPlayers
-            .Where(x => x.MatchId == matchId)
+            .Where(x => x.MatchId == matchId && x.Home == isHomeTeam)
             .Where(x => x.Status == "Captain" || x.Status == "Major")
             .ToArrayAsync();
         _context.MatchPlayers.RemoveRange(existingPlayers);
@@ -287,7 +295,7 @@ public class MatchService
                 Name = player.Alias ?? "",
                 Status = newStatus,
                 Ranking = (match.Competition is Competition.Vttl or Competition.Jeugd ? player.RankingVttl : player.RankingSporta) ?? "",
-                Home = match.IsHomeMatch ?? false,
+                Home = isHomeTeam,
                 Position = i,
                 UniqueIndex = match.Competition is Competition.Vttl or Competition.Jeugd ? player.ComputerNummerVttl ?? 0 : player.LidNummerSporta ?? 0
             };

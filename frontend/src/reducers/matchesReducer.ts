@@ -120,6 +120,8 @@ export const selectPlayer = createAsyncThunk(
 
 type EditMatchPlayersParams = {
   matchId: number;
+  /** Which of our teams is editing: a derby has two */
+  teamId: number;
   playerIds: number[];
   blockAlso: boolean;
   newStatus: string;

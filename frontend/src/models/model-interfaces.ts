@@ -93,6 +93,8 @@ export interface IFullStoreMatchOwn extends IStoreMatchCommon, IStoreMatchOwn {}
 interface IStoreMatchOwn {
   isHomeMatch: boolean;
   teamId: number;
+  /** The other TTC Aalst team in a derby. Null for every other match. */
+  opponentTeamId: number | null;
   description: string;
   reportPlayerId: 0 | number;
   block: MatchPlayerStatus | '';
@@ -106,6 +108,7 @@ interface IStoreMatchOwn {
  * one of the two teams is TTC Aalst
  * */
 interface IMatchOwn extends IStoreMatchOwn {
+  isPlayedBy(teamId: number): boolean;
   renderOpponentTitle(): string;
   getOpponentClub(): IClub;
   isScoreComplete(): boolean;

@@ -162,12 +162,12 @@ public class MatchesController
     [Route("EditMatchPlayers")]
     public async Task<ActionResult<Match>> EditMatchPlayers([FromBody] MatchPlayersDto dto)
     {
-        if (!await _service.MayEditFormation(dto.MatchId))
+        if (!await _service.MayEditFormation(dto.MatchId, dto.TeamId))
         {
             return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }
 
-        var result = await _service.EditMatchPlayers(dto.MatchId, dto.PlayerIds, dto.NewStatus, dto.BlockAlso, dto.Comment);
+        var result = await _service.EditMatchPlayers(dto.MatchId, dto.TeamId, dto.PlayerIds, dto.NewStatus, dto.BlockAlso, dto.Comment);
         await _hub.Clients.All.BroadcastReload(Entities.Match, dto.MatchId);
         return result;
     }
@@ -282,11 +282,12 @@ public class MatchPlayersDto
 {
     public bool BlockAlso { get; set; }
     public int MatchId { get; set; }
+    public int TeamId { get; set; }
     public string NewStatus { get; set; } = "";
     public int[] PlayerIds { get; set; } = [];
     public string Comment { get; set; } = "";
 
-    public override string ToString() => $"MatchId={MatchId}, Block={BlockAlso}, Status={NewStatus}, Players={string.Join(",", PlayerIds)}";
+    public override string ToString() => $"MatchId={MatchId}, TeamId={TeamId}, Block={BlockAlso}, Status={NewStatus}, Players={string.Join(",", PlayerIds)}";
 }
 
 public class OpponentPlayersDto

@@ -59,6 +59,11 @@ public class Match : ITtcConfidential
 
     public int TeamId { get; set; }
     /// <summary>
+    /// The other TTC Aalst team in a derby: two of our teams sharing a division.
+    /// Null for every other match.
+    /// </summary>
+    public int? OpponentTeamId { get; set; }
+    /// <summary>
     /// Null when TTC Aalst did not play (~ ReadonlyMatch)
     /// True/False: Was TTC Aalst, True=Was in Aalst
     /// </summary>
