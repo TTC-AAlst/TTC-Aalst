@@ -22,6 +22,22 @@ describe('httpClient.post', () => {
     await expect(http.post('/config', { key: 'year', value: '2026' })).resolves.toBeUndefined();
   });
 
+  it('rejects on a 500 instead of handing the ProblemDetails body to the caller', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          text: () => Promise.resolve('{"title":"Server error","status":500}'),
+          json: () => Promise.resolve({ title: 'Server error', status: 500 }),
+        } as unknown as Response),
+      ),
+    );
+
+    await expect(http.post('/matches/FrenoyOtherMatchSync', { id: 1 })).rejects.toThrow('500');
+  });
+
   it('parses a JSON body when one is returned', async () => {
     vi.stubGlobal(
       'fetch',
@@ -69,8 +85,30 @@ describe('httpClient logging + correlation', () => {
     );
     const warnSpy = vi.spyOn(logger, 'warn');
 
-    await http.get('/players');
+    await expect(http.get('/players')).rejects.toThrow('404');
 
     expect(warnSpy).toHaveBeenCalledWith('api', expect.objectContaining({ status: 404 }));
+  });
+});
+
+describe('httpClient.get', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('rejects on a 500 instead of handing the ProblemDetails body to the caller', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({ title: 'Server error', status: 500 }),
+          text: () => Promise.resolve('{"title":"Server error","status":500}'),
+        } as unknown as Response),
+      ),
+    );
+
+    await expect(http.get('/matches')).rejects.toThrow('500');
   });
 });

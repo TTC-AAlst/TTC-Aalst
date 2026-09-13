@@ -69,6 +69,10 @@ const HttpClient = {
         console.timeEnd(fullUrl);
       }
 
+      if (!response.ok) {
+        throw new Error(`GET ${path} failed: ${response.status}`);
+      }
+
       return response.json();
     })();
   },
@@ -91,6 +95,10 @@ const HttpClient = {
       if (LogRequestTimes) {
         // eslint-disable-next-line no-console
         console.timeEnd(fullUrl);
+      }
+
+      if (!response.ok) {
+        throw new Error(`POST ${url} failed: ${response.status}`);
       }
 
       // Void backend actions (e.g. POST /config) return 200 with an empty body; response.json() would throw.
