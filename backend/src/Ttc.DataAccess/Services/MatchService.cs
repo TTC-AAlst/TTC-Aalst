@@ -520,14 +520,20 @@ public class MatchService
         }).ToArray();
 
         var otherCompetition = request.Competition == Competition.Sporta ? Competition.Vttl : Competition.Sporta;
-        var otherCompetitionMatches = await _context.Matches
+        var opponentNames = request.OpponentPlayerNames.Keys.ToArray();
+        var ownPlayerIds = request.OwnPlayerIds.Keys.ToArray();
+        // MySql.EntityFrameworkCore cannot translate Contains over a collection of strings: it assigns
+        // no type mapping to the parameter and throws. Our own players narrow this down enough to
+        // filter the opponents in memory.
+        var otherCompetitionMatches = (await _context.Matches
             .Include(x => x.Games)
             .Include(x => x.Players)
             .Where(x => x.Competition == otherCompetition)
             .Where(x => x.IsSyncedWithFrenoy)
-            .Where(x => x.Players.Any(player => request.OpponentPlayerNames.Keys.Contains(player.Name)))
-            .Where(x => x.Players.Any(player => player.PlayerId.HasValue && request.OwnPlayerIds.Keys.Contains(player.PlayerId.Value)))
-            .ToArrayAsync();
+            .Where(x => x.Players.Any(player => player.PlayerId.HasValue && ownPlayerIds.Contains(player.PlayerId.Value)))
+            .ToArrayAsync())
+            .Where(x => x.Players.Any(player => opponentNames.Contains(player.Name)))
+            .ToArray();
 
         var otherResult = otherCompetitionMatches.SelectMany(match =>
         {

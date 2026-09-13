@@ -37,3 +37,11 @@ dotnet ef database update -p src/Ttc.DataAccess -s src/Ttc.WebApi
 External API for Belgian Table Tennis Federation data sync:
 - `FrenoyPlayersApi`, `FrenoyMatchesApi`, `FrenoyTeamsApi`
 - `FrenoySyncJob`: Background sync (controlled by `TtcSettings.StartSyncJob`)
+
+## EF Core gotchas
+
+`MySql.EntityFrameworkCore` cannot translate `Contains` over a collection of **strings**: it assigns
+the parameter no type mapping and throws `Expression '@x' in the SQL tree does not have a type
+mapping assigned`. `EF.Constant` does not help. Filter in memory, or build an OR chain.
+Collections of `int` translate fine, and a `static readonly string[]` works because it is inlined
+as literals instead of parameterized.
