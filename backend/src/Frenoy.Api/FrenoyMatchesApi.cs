@@ -461,20 +461,24 @@ public class FrenoyMatchesApi : FrenoyApiBase
         _db.MatchGames.RemoveRange(oldMatchGames);
     }
 
-    private static void AddMatchGames(IndividualMatchResultEntryType frenoyIndividual, MatchEntity matchEntity)
+    public static void AddMatchGames(IndividualMatchResultEntryType frenoyIndividual, MatchEntity matchEntity)
     {
         if (frenoyIndividual.IsHomeForfeited || frenoyIndividual.IsAwayForfeited)
         {
             return;
         }
 
+        // Frenoy leaves the MatchIndex arrays empty for some competitions, so only the
+        // UniqueIndex arrays can tell a doubles game from a singles one
+        var homeUniqueIndexes = frenoyIndividual.HomePlayerUniqueIndex ?? [];
+        var awayUniqueIndexes = frenoyIndividual.AwayPlayerUniqueIndex ?? [];
+
         MatchGameEntity matchResult;
-        if (frenoyIndividual.AwayPlayerMatchIndex?.Length == 2 && frenoyIndividual.AwayPlayerMatchIndex?.Length == 2 &&
-            frenoyIndividual.HomePlayerMatchIndex?.Length == 2 && frenoyIndividual.HomePlayerUniqueIndex?.Length == 2 &&
-            int.TryParse(frenoyIndividual.HomePlayerUniqueIndex?.First(), out int homeUniqueIndex1) &&
-            int.TryParse(frenoyIndividual.AwayPlayerUniqueIndex?.First(), out int awayUniqueIndex1) &&
-            int.TryParse(frenoyIndividual.HomePlayerUniqueIndex?.Last(), out int homeUniqueIndex2) &&
-            int.TryParse(frenoyIndividual.AwayPlayerUniqueIndex?.Last(), out int awayUniqueIndex2))
+        if (homeUniqueIndexes.Length == 2 && awayUniqueIndexes.Length == 2 &&
+            int.TryParse(homeUniqueIndexes.First(), out int homeUniqueIndex1) &&
+            int.TryParse(awayUniqueIndexes.First(), out int awayUniqueIndex1) &&
+            int.TryParse(homeUniqueIndexes.Last(), out int homeUniqueIndex2) &&
+            int.TryParse(awayUniqueIndexes.Last(), out int awayUniqueIndex2))
         {
             // Sporta doubles match:
             matchResult = new MatchGameEntity
@@ -488,8 +492,9 @@ public class FrenoyMatchesApi : FrenoyApiBase
                 WalkOver = WalkOver.None
             };
         }
-        else if (int.TryParse(frenoyIndividual.HomePlayerUniqueIndex?.SingleOrDefault(), out int homeUniqueIndex) &&
-                 int.TryParse(frenoyIndividual.AwayPlayerUniqueIndex?.SingleOrDefault(), out int awayUniqueIndex))
+        else if (homeUniqueIndexes.Length == 1 && awayUniqueIndexes.Length == 1 &&
+                 int.TryParse(homeUniqueIndexes[0], out int homeUniqueIndex) &&
+                 int.TryParse(awayUniqueIndexes[0], out int awayUniqueIndex))
         {
             // Sporta/Vttl singles match
             matchResult = new MatchGameEntity
