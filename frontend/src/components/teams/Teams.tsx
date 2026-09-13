@@ -23,6 +23,7 @@ import { editMatchPlayers } from '../../reducers/matchesReducer';
 import { MatchesTablePlayerLineUp } from '../matches/MatchesTable/MatchesTablePlayerLineUp';
 import { MatchesTableEditPlayerLineUp } from '../matches/MatchesTable/MatchesTableEditPlayerLineUp';
 import { getPlayerFormation } from '../matches/MatchesTable/matchesTableUtil';
+import { getTeamViewKeys } from './teamViewKeys';
 import { Icon } from '../controls/Icons/Icon';
 
 export const Teams = () => {
@@ -93,11 +94,7 @@ export const Teams = () => {
     const team = findTeam(teamCode);
 
     const transView = (key: string) => t(`teamCalendar.view.${key}`);
-    const viewsKeys = ['main', 'week', 'matches', 'ranking', 'players'];
-    if (user.canEditMatchesOrIsCaptain() && viewport.width > 1000) {
-      viewsKeys.splice(3, 0, 'matchesTable');
-    }
-    const viewsConfig = viewsKeys.map(v => ({ key: v, text: transView(v) }));
+    const viewsConfig = getTeamViewKeys(user, viewport.width).map(v => ({ key: v, text: transView(v) }));
 
     const view = params.view || 'main';
     const { matches } = getFirstOrLastMatches(team.getMatches(), matchesFilter);
