@@ -28,3 +28,6 @@ dist
 bun-debug.log
 coverage/
 test-results
+
+# Playwright MCP
+.playwright-mcp/
