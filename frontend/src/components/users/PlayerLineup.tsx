@@ -25,7 +25,7 @@ type PlayerLineupProps = {
   showToog?: boolean;
 };
 
-/** A club home day without an own match still gets a row, so a row is not necessarily a match */
+/** A club home day without an own match still gets a row */
 type LineupRow = {
   date: Dayjs;
   match?: IMatch;
@@ -85,7 +85,7 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
     ? []
     : toogDays.filter(day => !matches.some(match => match.date.isSame(day.date, 'day'))).map(toog => ({ date: dayjs(toog.date), toog }));
 
-  // Two own matches on the same home day is still one toog: only the first row of that day gets the toggle
+  // Two own matches on the same home day is still one toog
   const seenToogDates = new Set<string>();
   const rows = [...matchRows, ...toogOnlyRows]
     .sort((a, b) => a.date.valueOf() - b.date.valueOf())

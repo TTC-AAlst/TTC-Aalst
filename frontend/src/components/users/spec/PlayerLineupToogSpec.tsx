@@ -24,28 +24,28 @@ const homeDay = dayjs().add(7, 'day').startOf('day');
 
 const toogDays: IToogDay[] = [{ date: homeDay.toISOString(), homeTeamIds: [10], available: false, assigned: false }];
 
-const createTeam = (matchDates: Dayjs[]): ITeam => {
+type TeamStub = { id: number; competition: string; teamCode: string };
+
+const createTeam = (matchDates: Dayjs[], stub: TeamStub = { id: 10, competition: 'Vttl', teamCode: 'A' }): ITeam => {
   const team = {
-    id: 10,
-    competition: 'Vttl',
-    teamCode: 'A',
+    ...stub,
     getDivisionRanking: () => ({ empty: true }),
-    renderOwnTeamTitle: () => 'Vttl A',
+    renderOwnTeamTitle: () => `${stub.competition} ${stub.teamCode}`,
     getMatches: (): IMatch[] => matches,
   } as unknown as ITeam;
 
   const matches = matchDates.map(
     (date, index) =>
       ({
-        id: index + 1,
-        teamId: 10,
+        id: stub.id * 100 + index + 1,
+        teamId: stub.id,
         date,
-        frenoyMatchId: `1/${index + 1}`,
+        frenoyMatchId: `${stub.id}/${index + 1}`,
         shouldBePlayed: true,
         isSyncedWithFrenoy: false,
         isHomeMatch: true,
         block: '',
-        competition: 'Vttl',
+        competition: stub.competition,
         opponent: { clubId: 20, teamCode: 'B' },
         players: [],
         comments: [],
@@ -94,6 +94,37 @@ describe('PlayerLineup toog column', () => {
 
     expect(await screen.findByText('Neem contact op met het bestuur als je de toog toch niet kan doen')).toBeInTheDocument();
     expect(screen.queryByText('Ik kan toog doen')).not.toBeInTheDocument();
+  });
+
+  it('names the teams playing at home on a toog-only row', async () => {
+    renderWithProviders(<PlayerLineup teams={[]} playerId={playerId} showToog />, {
+      preloadedState: {
+        toog: { mine: toogDays, admin: [] },
+        teams: [{ id: 10, competition: 'Vttl', teamCode: 'A' }],
+      },
+    });
+
+    expect(await screen.findByText('Vttl A')).toBeInTheDocument();
+  });
+
+  it('turns a home day whose match the competition filter hides into a toog-only row', async () => {
+    const sportaDay = homeDay.add(2, 'day');
+    const days: IToogDay[] = [toogDays[0]!, { date: sportaDay.toISOString(), homeTeamIds: [11], available: false, assigned: false }];
+    vi.spyOn(http, 'get').mockResolvedValue(days);
+    const vttl = createTeam([homeDay.hour(20)]);
+    const sporta = createTeam([sportaDay.hour(20)], { id: 11, competition: 'Sporta', teamCode: 'B' });
+
+    renderWithProviders(<PlayerLineup teams={[vttl, sporta]} playerId={playerId} showToog />, {
+      preloadedState: { toog: { mine: days, admin: [] } },
+    });
+
+    expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(2);
+    expect(screen.queryByText('Jouw ploeg speelt niet')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Sporta'));
+
+    expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(2);
+    expect(screen.getByText('Jouw ploeg speelt niet')).toBeInTheDocument();
   });
 
   it('renders one toggle when two own matches fall on the same home day', async () => {
