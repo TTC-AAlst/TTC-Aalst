@@ -163,6 +163,30 @@ public class ToogControllerTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Assign_AsPlainPlayer_IsForbidden()
+    {
+        using var client = CreateClientFor(PlainPlayerId);
+
+        var response = await client.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await using var context = GetDbContext();
+        Assert.Empty(await context.Toog.ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task Assign_OnADayWithoutHomeMatch_IsForbidden()
+    {
+        using var client = CreateClientFor(BoardPlayerId);
+
+        var response = await client.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = AwayDay.Date, PlayerId = PlainPlayerId });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await using var context = GetDbContext();
+        Assert.Empty(await context.Toog.ToArrayAsync());
+    }
+
+    [Fact]
     public async Task Get_ListsAvailablePlayersPerDay()
     {
         using var plain = CreateClientFor(PlainPlayerId);

@@ -47,7 +47,7 @@ public class ToogController
     [HttpPost("assign")]
     public async Task<ActionResult<ToogAdminDay[]>> Assign([FromBody] ToogAssignRequest request)
     {
-        if (!await _service.IsBoardMember())
+        if (!await _service.MayAssign(request.Date))
         {
             return new StatusCodeResult(StatusCodes.Status403Forbidden);
         }

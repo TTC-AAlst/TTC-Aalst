@@ -95,6 +95,17 @@ public class ToogService
         return existing == null || !existing.Assigned;
     }
 
+    public async Task<bool> MayAssign(DateTime date)
+    {
+        if (!await IsBoardMember())
+        {
+            return false;
+        }
+
+        var homeDays = await GetHomeDays();
+        return homeDays.ContainsKey(date.Date);
+    }
+
     public async Task<ToogDay[]> SetMine(DateTime date, bool available)
     {
         int playerId = _userProvider.PlayerId ?? throw new InvalidOperationException("Not logged in");
