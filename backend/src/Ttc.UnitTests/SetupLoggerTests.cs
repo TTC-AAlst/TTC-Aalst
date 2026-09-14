@@ -16,4 +16,15 @@ public class SetupLoggerTests
     {
         Assert.Equal(expected, SetupLogger.AppLabelForOrigin(origins));
     }
+
+    [Fact]
+    public void PropertiesAsLabels_ContainsOnlyBoundedProperties()
+    {
+        // A Loki label value starts a new stream, and a stream is the unit Loki indexes,
+        // chunks and flushes. Anything per-request or per-user in here costs orders of
+        // magnitude more than the logs it carries.
+        string[] bounded = ["level", "app", "env"];
+
+        Assert.Equal(bounded, SetupLogger.PropertiesAsLabels);
+    }
 }

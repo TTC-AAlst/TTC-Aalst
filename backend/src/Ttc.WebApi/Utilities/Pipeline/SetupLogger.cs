@@ -39,16 +39,15 @@ public static class SetupLogger
                     new LokiLabel() { Key = "service_name", Value = "ttc-backend" },
                     new LokiLabel() { Key = "app", Value = AppLabelForOrigin(ttcSettings.Origins) },
                 ],
-                [
-                    "level",
-                    "MachineName",
-                    "UserName",
-                    "RequestId",
-                    "app",
-                    "env"
-                ])
+                PropertiesAsLabels)
             .CreateLogger();
     }
+
+    // Every distinct label value is its own Loki stream — its own index entry, chunk and
+    // flush. MachineName, UserName and RequestId belong to the log line, not here: as
+    // labels they made one stream per HTTP request. They stay queryable via `| json`,
+    // because LokiJsonTextFormatter writes all properties into the line.
+    public static readonly string[] PropertiesAsLabels = ["level", "app", "env"];
 
     // Loki `app` label per environment so dev/preview logs don't commingle with prod.
     // Derived from the public origin (set per Coolify tier) because Coolify does NOT
