@@ -30,6 +30,7 @@ public class TtcDbContext : DbContext, ITtcDbContext
 
     public DbSet<ParameterEntity> Parameters { get; set; } = null!;
     public DbSet<EventEntity> Events { get; set; } = null!;
+    public DbSet<ToogEntity> Toog { get; set; } = null!;
     #endregion
 
     #region Properties
