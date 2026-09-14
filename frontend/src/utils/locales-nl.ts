@@ -314,6 +314,7 @@ export default {
         tooltipSave: 'Opstelling bewaren ZONDER blokkeren',
         tooltipOpenForm: 'Match opstelling bewerken',
         extraComment: 'Extra info bij de match',
+        alsoPlaysIn: 'Speelt deze week ook in ${}',
       },
       week: 'Week',
       todayMatches: 'vandaag',

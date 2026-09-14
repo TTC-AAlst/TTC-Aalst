@@ -22,7 +22,7 @@ import { IMatch, ITeam, PickedPlayer } from '../../models/model-interfaces';
 import { editMatchPlayers } from '../../reducers/matchesReducer';
 import { MatchesTablePlayerLineUp } from '../matches/MatchesTable/MatchesTablePlayerLineUp';
 import { MatchesTableEditPlayerLineUp } from '../matches/MatchesTable/MatchesTableEditPlayerLineUp';
-import { getPlayerFormation } from '../matches/MatchesTable/matchesTableUtil';
+import { getPlayerFormation } from '../../models/utils/getPlayerFormation';
 import { getTeamViewKeys } from './teamViewKeys';
 import { Icon } from '../controls/Icons/Icon';
 

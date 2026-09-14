@@ -1,6 +1,7 @@
 import { Table } from 'react-bootstrap';
 import { IMatch, ITeam } from '../../../models/model-interfaces';
-import { getPlayerFormation, getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
+import { getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
+import { getPlayerFormation } from '../../../models/utils/getPlayerFormation';
 import { MatchesTablePlayerLineUpHeader } from './MatchesTablePlayerLineUpHeader';
 import {
   MatchesTablePlayerLineUpDateCell,
@@ -9,7 +10,8 @@ import {
   MatchesTablePlayerLineUpMatchVsCell,
   MatchesTablePlayerLineUpPlayerPlayingCell,
 } from './MatchesTablePlayerLineUpCells';
-import { selectUser, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { selectLineupConflicts, selectUser, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { conflictKey } from '../../../models/utils/lineupConflicts';
 
 type MatchesTablePlayerLineUpProps = {
   team: ITeam;
@@ -18,6 +20,7 @@ type MatchesTablePlayerLineUpProps = {
 
 export const MatchesTablePlayerLineUp = ({ team, matches }: MatchesTablePlayerLineUpProps) => {
   const user = useTtcSelector(selectUser);
+  const conflicts = useTtcSelector(selectLineupConflicts);
   const teamPlayers = getTablePlayers(team);
 
   return (
@@ -42,6 +45,7 @@ export const MatchesTablePlayerLineUp = ({ team, matches }: MatchesTablePlayerLi
                   match={match}
                   player={ply.player}
                   team={team}
+                  conflictTeams={conflicts.get(conflictKey(match.id, ply.player.id))}
                 />
               ))}
             </tr>

@@ -17,7 +17,8 @@ import { PlayerCompetitionBadge } from '../../players/PlayerBadges';
 import { Icon } from '../../controls/Icons/Icon';
 import { EditIcon } from '../../controls/Icons/EditIcon';
 import { t } from '../../../locales';
-import { selectReadOnlyMatches, selectUser, useTtcDispatch, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { selectLineupConflicts, selectReadOnlyMatches, selectUser, useTtcDispatch, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { conflictKey } from '../../../models/utils/lineupConflicts';
 import { getOpponentMatches } from '../../../reducers/readonlyMatchesReducer';
 import { DivisionMatchesSection } from './DivisionMatchesSection';
 import { getPreviousEncounters } from '../../../reducers/matchInfoReducer';
@@ -290,6 +291,7 @@ const OurFormationPreStart = ({ match }: { match: IMatch }) => {
   const [showScoresheet, setShowScoresheet] = useState(false);
   const [showEditOwn, setShowEditOwn] = useState(false);
   const user = useTtcSelector(selectUser);
+  const conflicts = useTtcSelector(selectLineupConflicts);
   const playingPlayers = match.getPlayerFormation('onlyFinal').map(x => x.player);
   const canEdit = canPickPlayers(match) && user.canEditFormation(match);
 
@@ -329,6 +331,7 @@ const OurFormationPreStart = ({ match }: { match: IMatch }) => {
               plyInfo={{ player: ply, matchPlayer: { status: 'Major' } }}
               competition={match.competition}
               style={{ marginBottom: 0 }}
+              conflictTeams={conflicts.get(conflictKey(match.id, ply.id))}
             />
           ))}
         </div>

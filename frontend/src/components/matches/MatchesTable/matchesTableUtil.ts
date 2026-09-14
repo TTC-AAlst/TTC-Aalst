@@ -15,13 +15,6 @@ export const getTablePlayers = (team: ITeam) => {
   });
 };
 
-export const getPlayerFormation = (match: IMatch) => {
-  if (match.block === 'Major' || match.block === 'Captain') {
-    return match.getPlayerFormation(match.block);
-  }
-  return match.getPlayerFormation('Captain');
-};
-
 export function getRowStripeColor(index: number, match: IMatch, playerId: number, forceStriped: boolean) {
   if (playerId && !forceStriped) {
     const playsThisMatch = match.plays(playerId, 'onlyFinal');
