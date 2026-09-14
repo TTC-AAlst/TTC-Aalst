@@ -116,9 +116,19 @@ describe('findLineupConflicts', () => {
   it('treats the two views on a derby as one match', () => {
     const conflicts = findLineupConflicts([
       match({ id: 1, teamCode: 'A', players: [plyInfo(7, 'Captain')] }),
-      match({ id: 1, teamCode: 'B', players: [plyInfo(8, 'Captain')] }),
+      match({ id: 1, teamCode: 'B', players: [plyInfo(7, 'Captain')] }),
     ]);
 
     expect(conflicts.size).toBe(0);
+  });
+
+  it('flags a player picked for two Major-blocked matches in the same week', () => {
+    const conflicts = findLineupConflicts([
+      match({ id: 1, teamCode: 'A', block: 'Major', players: [plyInfo(7, 'Major')] }),
+      match({ id: 2, teamCode: 'B', block: 'Major', players: [plyInfo(7, 'Major')] }),
+    ]);
+
+    expect(conflicts.get(conflictKey(1, 7))).toEqual(['Sporta B']);
+    expect(conflicts.get(conflictKey(2, 7))).toEqual(['Sporta A']);
   });
 });
