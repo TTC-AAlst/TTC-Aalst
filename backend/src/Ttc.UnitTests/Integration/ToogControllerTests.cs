@@ -151,4 +151,121 @@ public class ToogControllerTests : IntegrationTestBase
         await using var context = GetDbContext();
         Assert.Empty(await context.Toog.ToArrayAsync());
     }
+
+    [Fact]
+    public async Task Get_AsPlainPlayer_IsForbidden()
+    {
+        using var client = CreateClientFor(PlainPlayerId);
+
+        var response = await client.GetAsync("api/toog");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Get_ListsAvailablePlayersPerDay()
+    {
+        using var plain = CreateClientFor(PlainPlayerId);
+        (await plain.PostAsJsonAsync("api/toog/mine", new ToogAvailabilityRequest { Date = HomeDay.Date, Available = true })).EnsureSuccessStatusCode();
+        using var board = CreateClientFor(BoardPlayerId);
+
+        var days = await board.GetFromJsonAsync<ToogAdminDay[]>("api/toog");
+
+        Assert.NotNull(days);
+        var day = Assert.Single(days, x => x.Date.Date == HomeDay.Date);
+        Assert.Equal([PlainPlayerId], day.AvailablePlayerIds);
+        Assert.Null(day.AssignedPlayerId);
+    }
+
+    [Fact]
+    public async Task Assign_APlayerWhoDidNotVolunteer_CreatesAnAssignedRow()
+    {
+        using var board = CreateClientFor(BoardPlayerId);
+
+        var response = await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = OtherPlayerId });
+
+        response.EnsureSuccessStatusCode();
+        await using var context = GetDbContext();
+        var row = Assert.Single(await context.Toog.Where(x => x.Date == HomeDay.Date).ToArrayAsync());
+        Assert.Equal(OtherPlayerId, row.PlayerId);
+        Assert.True(row.Assigned);
+    }
+
+    [Fact]
+    public async Task Assign_ReplacesThePreviousAssignmentOfThatDay()
+    {
+        using var board = CreateClientFor(BoardPlayerId);
+        (await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = OtherPlayerId })).EnsureSuccessStatusCode();
+
+        var response = await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId });
+
+        response.EnsureSuccessStatusCode();
+        await using var context = GetDbContext();
+        var rows = await context.Toog.Where(x => x.Date == HomeDay.Date).ToArrayAsync();
+        Assert.Equal(PlainPlayerId, Assert.Single(rows, x => x.Assigned).PlayerId);
+    }
+
+    [Fact]
+    public async Task Assign_OfAVolunteer_KeepsHisRowAndDropsTheOtherAssignment()
+    {
+        using var plain = CreateClientFor(PlainPlayerId);
+        (await plain.PostAsJsonAsync("api/toog/mine", new ToogAvailabilityRequest { Date = HomeDay.Date, Available = true })).EnsureSuccessStatusCode();
+        using var board = CreateClientFor(BoardPlayerId);
+        (await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = OtherPlayerId })).EnsureSuccessStatusCode();
+
+        var response = await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId });
+
+        response.EnsureSuccessStatusCode();
+        await using var context = GetDbContext();
+        var rows = await context.Toog.Where(x => x.Date == HomeDay.Date).ToArrayAsync();
+        Assert.Equal(PlainPlayerId, Assert.Single(rows).PlayerId);
+        Assert.True(rows[0].Assigned);
+    }
+
+    [Fact]
+    public async Task Assign_WithoutPlayer_ClearsTheAssignmentButKeepsAVolunteerRow()
+    {
+        using var plain = CreateClientFor(PlainPlayerId);
+        (await plain.PostAsJsonAsync("api/toog/mine", new ToogAvailabilityRequest { Date = HomeDay.Date, Available = true })).EnsureSuccessStatusCode();
+        using var board = CreateClientFor(BoardPlayerId);
+        (await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId })).EnsureSuccessStatusCode();
+
+        var response = await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = null });
+
+        response.EnsureSuccessStatusCode();
+        await using var context = GetDbContext();
+        var row = Assert.Single(await context.Toog.Where(x => x.Date == HomeDay.Date).ToArrayAsync());
+        Assert.Equal(PlainPlayerId, row.PlayerId);
+        Assert.False(row.Assigned);
+    }
+
+    [Fact]
+    public async Task SetMine_Unavailable_WhileAssigned_IsForbidden()
+    {
+        using var plain = CreateClientFor(PlainPlayerId);
+        (await plain.PostAsJsonAsync("api/toog/mine", new ToogAvailabilityRequest { Date = HomeDay.Date, Available = true })).EnsureSuccessStatusCode();
+        using var board = CreateClientFor(BoardPlayerId);
+        (await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId })).EnsureSuccessStatusCode();
+
+        var response = await plain.PostAsJsonAsync("api/toog/mine", new ToogAvailabilityRequest { Date = HomeDay.Date, Available = false });
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        await using var context = GetDbContext();
+        Assert.Single(await context.Toog.Where(x => x.Date == HomeDay.Date).ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task GetMine_AfterBeingAssigned_ReportsAssigned()
+    {
+        using var board = CreateClientFor(BoardPlayerId);
+        (await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId })).EnsureSuccessStatusCode();
+        using var plain = CreateClientFor(PlainPlayerId);
+
+        var days = await plain.GetFromJsonAsync<ToogDay[]>("api/toog/mine");
+
+        Assert.NotNull(days);
+        var day = Assert.Single(days, x => x.Date.Date == HomeDay.Date);
+        Assert.True(day.Available);
+        Assert.True(day.Assigned);
+    }
 }

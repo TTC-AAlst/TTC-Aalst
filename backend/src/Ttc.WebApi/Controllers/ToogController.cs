@@ -32,4 +32,26 @@ public class ToogController
 
         return await _service.SetMine(request.Date, request.Available);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<ToogAdminDay[]>> Get()
+    {
+        if (!await _service.IsBoardMember())
+        {
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
+
+        return await _service.Get();
+    }
+
+    [HttpPost("assign")]
+    public async Task<ActionResult<ToogAdminDay[]>> Assign([FromBody] ToogAssignRequest request)
+    {
+        if (!await _service.IsBoardMember())
+        {
+            return new StatusCodeResult(StatusCodes.Status403Forbidden);
+        }
+
+        return await _service.Assign(request.Date, request.PlayerId);
+    }
 }

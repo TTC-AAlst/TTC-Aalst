@@ -113,4 +113,56 @@ public class ToogService
         await _context.SaveChangesAsync();
         return await GetMine();
     }
+
+    public async Task<ToogAdminDay[]> Get()
+    {
+        var homeDays = await GetHomeDays();
+        var rows = await _context.Toog
+            .Where(x => x.Date >= TtcDbContext.GetCurrentBelgianDateTime().Date)
+            .ToArrayAsync();
+
+        return homeDays
+            .Select(day => new ToogAdminDay
+            {
+                Date = day.Key,
+                HomeTeamIds = day.Value,
+                AvailablePlayerIds = rows.Where(x => x.Date == day.Key).Select(x => x.PlayerId).OrderBy(x => x).ToArray(),
+                AssignedPlayerId = rows.FirstOrDefault(x => x.Date == day.Key && x.Assigned)?.PlayerId,
+            })
+            .ToArray();
+    }
+
+    public async Task<ToogAdminDay[]> Assign(DateTime date, int? playerId)
+    {
+        var day = date.Date;
+        var rows = await _context.Toog.Where(x => x.Date == day).ToArrayAsync();
+
+        foreach (var row in rows.Where(x => x.Assigned && x.PlayerId != playerId))
+        {
+            if (row.Volunteered)
+            {
+                row.Assigned = false;
+            }
+            else
+            {
+                _context.Toog.Remove(row);
+            }
+        }
+
+        if (playerId.HasValue)
+        {
+            var target = rows.FirstOrDefault(x => x.PlayerId == playerId.Value);
+            if (target == null)
+            {
+                _context.Toog.Add(new ToogEntity { Date = day, PlayerId = playerId.Value, Assigned = true });
+            }
+            else
+            {
+                target.Assigned = true;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return await Get();
+    }
 }
