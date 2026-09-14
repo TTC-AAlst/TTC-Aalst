@@ -49,6 +49,11 @@ of meer matchen met dezelfde `competition` én dezelfde `week`.
   const formationOf = (match: IMatch) => (match.isSyncedWithFrenoy ? match.getPlayerFormation('onlyFinal') : getPlayerFormation(match));
   ```
 
+- Een gesynchroniseerde match krijgt zelf **geen** waarschuwing: daar valt niets meer aan
+  te veranderen, die badge blijft groen. Enkel de nog niet gespeelde match van het
+  conflictpaar wordt rood. `findLineupConflicts` schrijft dus geen entry weg voor een
+  match met `isSyncedWithFrenoy === true`, ook al telt die match wel mee als bron.
+
 ### Derby
 
 Een derby (twee eigen ploegen tegen elkaar) staat één keer in de store. Op dat ene
@@ -134,7 +139,8 @@ TDD, vitest + React Testing Library.
 - speler met status `Play`/`Maybe` in de tweede match → geen conflict;
 - match met `shouldBePlayed === false` → genegeerd;
 - derby: de speler in de away-opstelling van de derby wordt herkend;
-- match die al gespeeld is telt mee als conflictbron voor een latere match in dezelfde week.
+- match die al gespeeld is telt mee als conflictbron voor een latere match in dezelfde week,
+  maar krijgt zelf geen entry in de map.
 
 `components/players/spec/PlayerBadgesSpec.tsx`:
 
