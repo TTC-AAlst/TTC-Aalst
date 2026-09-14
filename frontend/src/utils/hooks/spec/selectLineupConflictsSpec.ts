@@ -5,11 +5,15 @@ import { OwnClubId } from '../../../models/ClubModel';
 import { IFullStoreMatchOwn, IMatchPlayer } from '../../../models/model-interfaces';
 import type { RootState } from '../../../store';
 
+const { getPlayerMock } = vi.hoisted(() => ({
+  getPlayerMock: vi.fn((playerId: number) => ({ id: playerId, alias: `Ply${playerId}`, getCompetition: () => ({ position: playerId }) })),
+}));
+
 // getTeam() logs a warning for a team without an id, so hand back a complete one
 vi.mock('../../../storeUtil', () => ({
   default: {
     getTeam: (teamId: number) => ({ id: teamId, teamCode: teamId === 1 ? 'A' : 'B' }),
-    getPlayer: (playerId: number) => ({ id: playerId, alias: `Ply${playerId}`, getCompetition: () => ({ position: playerId }) }),
+    getPlayer: getPlayerMock,
   },
 }));
 
@@ -56,10 +60,23 @@ const state = (matches: IFullStoreMatchOwn[]): RootState =>
   }) as unknown as RootState;
 
 describe('selectLineupConflicts', () => {
+  afterEach(() => {
+    getPlayerMock.mockImplementation((playerId: number) => ({ id: playerId, alias: `Ply${playerId}`, getCompetition: () => ({ position: playerId }) }));
+  });
+
   it('sees the away formation of a derby', () => {
     const conflicts = selectLineupConflicts(state([derby(), otherMatch()]));
 
     expect(conflicts.get(conflictKey(2, 8))).toEqual(['Sporta B']);
     expect(conflicts.get(conflictKey(1, 8))).toEqual(['Sporta A']);
+  });
+
+  it('still finds the conflict when the players slice has not loaded yet', () => {
+    // storeUtil.getPlayer does players.find(...)! and yields a PlayerModel(undefined), id 0, for every player
+    getPlayerMock.mockImplementation(() => ({ id: 0, alias: 'Unhydrated', getCompetition: () => ({ position: 0 }) }));
+
+    const conflicts = selectLineupConflicts(state([derby(), otherMatch()]));
+
+    expect(conflicts.get(conflictKey(2, 8))).toEqual(['Sporta B']);
   });
 });

@@ -104,7 +104,7 @@ export const ReadOnlyMatchPlayers = ({ match, displayNonBlocked }: ReadOnlyMatch
           plyInfo={plyInfo}
           competition={match.competition}
           style={{ marginBottom: 4, marginRight: 5 }}
-          conflictTeams={conflicts.get(conflictKey(match.id, plyInfo.player.id))}
+          conflictTeams={conflicts.get(conflictKey(match.id, plyInfo.id))}
           key={`ply-${plyInfo.player.id}`}
         />
       ))}

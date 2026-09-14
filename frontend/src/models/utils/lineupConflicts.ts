@@ -27,7 +27,7 @@ export function findLineupConflicts(matches: IMatch[]): Map<string, string[]> {
     .forEach(match => {
       const weekKey = `${match.competition}-${match.week}`;
       const bookings = perWeek.get(weekKey) ?? [];
-      formationOf(match).forEach(plyInfo => bookings.push({ match, playerId: plyInfo.player.id }));
+      formationOf(match).forEach(plyInfo => bookings.push({ match, playerId: plyInfo.id }));
       perWeek.set(weekKey, bookings);
     });
 
