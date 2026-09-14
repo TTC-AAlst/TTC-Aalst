@@ -44,9 +44,19 @@ type PlayerCompetitionButtonProps = {
   actionIconClass: string;
   style?: React.CSSProperties;
   competition: Competition;
+  /** Other teams the player is also lined up for this playing week */
+  conflictTeams?: string[];
 };
 
-export const PlayerCompetitionButton = ({ plyInfo, onButtonClick, isPicked, actionIconClass, style, competition }: PlayerCompetitionButtonProps) => {
+export const PlayerCompetitionButton = ({
+  plyInfo,
+  onButtonClick,
+  isPicked,
+  actionIconClass,
+  style,
+  competition,
+  conflictTeams,
+}: PlayerCompetitionButtonProps) => {
   const { matchPlayer } = plyInfo;
   const comp = plyInfo.player.getCompetition(competition);
   return (
@@ -59,6 +69,9 @@ export const PlayerCompetitionButton = ({ plyInfo, onButtonClick, isPicked, acti
       onClick={() => onButtonClick()}
     >
       {matchPlayer.statusNote ? <CommentIcon style={{ marginRight: 5, marginLeft: 0 }} /> : null}
+      {conflictTeams?.length ? (
+        <Icon fa="fa fa-exclamation-triangle" style={{ marginRight: 5, marginLeft: 0 }} tooltip={t('match.plys.alsoPlaysIn', conflictTeams.join(', '))} />
+      ) : null}
       {plyInfo.player.alias}
       {competition && comp ? <span style={{ marginLeft: 5, fontSize: 10 }}>{comp.ranking}</span> : null}
       <Icon fa={actionIconClass} style={{ marginRight: 0, marginLeft: 5, visibility: isPicked ? undefined : 'hidden' }} />

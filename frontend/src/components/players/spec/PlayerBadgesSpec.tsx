@@ -14,10 +14,17 @@ const plyInfo = (status: MatchPlayerStatus | '') =>
     matchPlayer: { status, statusNote: '' },
   }) as unknown as PickedPlayer;
 
-const renderButton = (status: MatchPlayerStatus | '') =>
+const renderButton = (status: MatchPlayerStatus | '', conflictTeams?: string[]) =>
   renderWithProviders(
     <TestRouter>
-      <PlayerCompetitionButton plyInfo={plyInfo(status)} isPicked={false} actionIconClass="fa fa-trash-o" onButtonClick={() => {}} competition="Vttl" />
+      <PlayerCompetitionButton
+        plyInfo={plyInfo(status)}
+        isPicked={false}
+        actionIconClass="fa fa-trash-o"
+        onButtonClick={() => {}}
+        competition="Vttl"
+        conflictTeams={conflictTeams}
+      />
     </TestRouter>,
   );
 
@@ -35,6 +42,21 @@ describe('PlayerCompetitionButton', () => {
   it('does not color DontKnow like Misschien', () => {
     renderButton('Maybe');
     expect(screen.getByRole('button').className).toContain('btn-info');
+  });
+
+  it('keeps the status color and warns when picked elsewhere that week', async () => {
+    renderButton('Captain', ['Sporta B']);
+    expect(screen.getByRole('button').className).toContain('btn-warning');
+    expect(screen.getByRole('button').className).not.toContain('btn-danger');
+    expect(document.querySelector('.fa-exclamation-triangle')).toBeInTheDocument();
+
+    fireEvent.mouseOver(document.querySelector('.fa-exclamation-triangle')!);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Speelt deze week ook in Sporta B');
+  });
+
+  it('shows no conflict icon without conflictTeams', () => {
+    renderButton('Captain');
+    expect(document.querySelector('.fa-exclamation-triangle')).not.toBeInTheDocument();
   });
 });
 

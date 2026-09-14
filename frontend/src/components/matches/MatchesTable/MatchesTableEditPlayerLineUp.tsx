@@ -53,7 +53,6 @@ export const MatchesTableEditPlayerLineUp = ({ team, matches, tablePlayers, onTa
                       match={match}
                       player={ply.player}
                       team={team}
-                      conflictTeams={conflicts.get(conflictKey(match.id, ply.player.id))}
                     />
                   );
                 }
@@ -100,6 +99,7 @@ export const MatchesTableEditPlayerLineUp = ({ team, matches, tablePlayers, onTa
                       actionIconClass="fa fa-thumbs-o-up"
                       onButtonClick={onButtonClick}
                       competition={match.competition}
+                      conflictTeams={conflicts.get(conflictKey(match.id, ply.player.id))}
                     />
                   </td>
                 );
