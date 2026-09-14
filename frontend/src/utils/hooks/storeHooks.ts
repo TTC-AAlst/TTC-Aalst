@@ -6,6 +6,8 @@ import MatchModel from '../../models/MatchModel';
 import TeamModel from '../../models/TeamModel';
 import PlayerModel from '../../models/PlayerModel';
 import { Competition, IMatch, IPlayer, ITeam } from '../../models/model-interfaces';
+import { mirrorDerbyMatch } from '../../models/utils/mirrorDerbyMatch';
+import { findLineupConflicts } from '../../models/utils/lineupConflicts';
 
 export const useTtcDispatch = useDispatch.withTypes<AppDispatch>();
 export const useTtcSelector = useSelector.withTypes<RootState>();
@@ -17,6 +19,23 @@ export const selectTeams = createSelector([(state: RootState) => state.teams, (s
 );
 
 export const selectMatches = createSelector([(state: RootState) => state.matches], matches => matches.map(m => new MatchModel(m) as IMatch));
+
+/**
+ * A derby is stored once, with the second team's formation on home: false where
+ * getOwnPlayers() drops it, so both views on it have to be handed to the rule.
+ */
+export const selectLineupConflicts = createSelector([(state: RootState) => state.matches, (state: RootState) => state.teams], (matches, teams) =>
+  findLineupConflicts(
+    matches.flatMap(m => {
+      const match = new MatchModel(m) as IMatch;
+      if (!m.opponentTeamId) {
+        return [match];
+      }
+      const ownTeamCode = teams.find(team => team.id === m.teamId)?.teamCode ?? '';
+      return [match, new MatchModel(mirrorDerbyMatch(m, ownTeamCode)) as IMatch];
+    }),
+  ),
+);
 
 export const selectFreeMatches = createSelector([(state: RootState) => state.freeMatches], matches => matches.map(m => new MatchModel(m) as IMatch));
 
