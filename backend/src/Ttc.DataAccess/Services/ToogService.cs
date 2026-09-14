@@ -19,7 +19,7 @@ public class ToogService
     /// Komende dagen waarop minstens één van onze ploegen thuis speelt, met de betrokken ploegen.
     /// Afgeleid uit de kalender: een toogbeurt heeft geen eigen kalenderrecord.
     /// </summary>
-    private async Task<Dictionary<DateTime, int[]>> GetHomeDays()
+    private async Task<SortedDictionary<DateTime, int[]>> GetHomeDays()
     {
         int currentFrenoySeason = _context.CurrentFrenoySeason;
         var today = TtcDbContext.GetCurrentBelgianDateTime().Date;
@@ -32,10 +32,9 @@ public class ToogService
             .Select(x => new { x.Date, HomeTeamId = x.HomeTeamId!.Value })
             .ToArrayAsync();
 
-        return matches
+        return new SortedDictionary<DateTime, int[]>(matches
             .GroupBy(x => x.Date.Date)
-            .OrderBy(x => x.Key)
-            .ToDictionary(x => x.Key, x => x.Select(m => m.HomeTeamId).Distinct().OrderBy(id => id).ToArray());
+            .ToDictionary(x => x.Key, x => x.Select(m => m.HomeTeamId).Distinct().OrderBy(id => id).ToArray()));
     }
 
     public async Task<bool> IsBoardMember()
