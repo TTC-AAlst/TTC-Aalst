@@ -7,6 +7,8 @@ import MatchVs from '../Match/MatchVs';
 import OwnPlayer from '../Match/OwnPlayer';
 import { PlayerCompetitionBadge } from '../../players/PlayerBadges';
 import { MatchBlock } from '../Match/MatchBlock';
+import { useTtcSelector, selectLineupConflicts } from '../../../utils/hooks/storeHooks';
+import { conflictKey } from '../../../models/utils/lineupConflicts';
 
 type MatchesTableHeaderProps = {
   editMode: boolean;
@@ -71,6 +73,8 @@ type ReadOnlyMatchPlayersProps = {
 };
 
 export const ReadOnlyMatchPlayers = ({ match, displayNonBlocked }: ReadOnlyMatchPlayersProps) => {
+  const conflicts = useTtcSelector(selectLineupConflicts);
+
   // A walkover syncs with no games, so getOwnPlayers() still holds every pre-match selection
   // (not the played 4). Fall through to render the blocked formation instead, like an
   // unplayed-but-blocked match.
@@ -100,6 +104,7 @@ export const ReadOnlyMatchPlayers = ({ match, displayNonBlocked }: ReadOnlyMatch
           plyInfo={plyInfo}
           competition={match.competition}
           style={{ marginBottom: 4, marginRight: 5 }}
+          conflictTeams={conflicts.get(conflictKey(match.id, plyInfo.player.id))}
           key={`ply-${plyInfo.player.id}`}
         />
       ))}
