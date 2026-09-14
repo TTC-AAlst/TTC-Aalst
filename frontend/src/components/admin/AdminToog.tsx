@@ -53,7 +53,7 @@ export const AdminToog = () => {
                 </Button>
               ))}
               {day.assignedPlayerId && !day.availablePlayerIds.includes(day.assignedPlayerId) ? (
-                <Button size="sm" variant="success" style={{ marginRight: 5 }}>
+                <Button size="sm" variant="success" style={{ marginRight: 5 }} disabled>
                   {playerName(day.assignedPlayerId)}
                 </Button>
               ) : null}

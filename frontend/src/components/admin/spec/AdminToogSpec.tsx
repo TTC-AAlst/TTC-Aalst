@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import dayjs from 'dayjs';
 import { renderWithProviders } from '../../../utils/test-utils';
@@ -25,7 +25,10 @@ const unassignedDay: IToogAdminDay = { date: homeDay.toISOString(), homeTeamIds:
 const assignedDay: IToogAdminDay = { ...unassignedDay, assignedPlayerId: 1 };
 
 const preloadedState = {
-  players: [{ id: 1, alias: 'Wouter' }],
+  players: [
+    { id: 1, alias: 'Wouter', firstName: 'Wouter', lastName: 'Van Schandevijl' },
+    { id: 2, alias: 'Jorn', firstName: 'Jorn', lastName: 'Theunissen' },
+  ],
   teams: [{ id: 10, competition: 'Vttl' as const, teamCode: 'A' }],
 };
 
@@ -38,6 +41,8 @@ describe('AdminToog', () => {
   beforeEach(() => {
     vi.spyOn(http, 'post').mockResolvedValue([assignedDay]);
   });
+
+  afterEach(() => vi.restoreAllMocks());
 
   it('shows the home teams and a button per available player', async () => {
     renderAdminToog([unassignedDay]);
@@ -58,6 +63,23 @@ describe('AdminToog', () => {
     renderAdminToog([{ ...unassignedDay, availablePlayerIds: [], assignedPlayerId: 1 }]);
 
     expect(await screen.findByRole('button', { name: 'Wouter' })).toBeInTheDocument();
+  });
+
+  it('assigns a player who did not volunteer, through the autocomplete', async () => {
+    renderAdminToog([unassignedDay]);
+    await screen.findByRole('button', { name: 'Wouter' });
+
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Jorn' } });
+    fireEvent.click(await screen.findByText('Jorn Theunissen'));
+
+    await waitFor(() => expect(http.post).toHaveBeenCalledWith('/toog/assign', { date: homeDay.toISOString(), playerId: 2 }));
+  });
+
+  it('marks a day nobody is assigned to', async () => {
+    const { container } = renderAdminToog([unassignedDay]);
+    await screen.findByRole('button', { name: 'Wouter' });
+
+    expect(container.querySelector('tbody tr')).toHaveClass('table-warning');
   });
 
   it('clears the assignment', async () => {
