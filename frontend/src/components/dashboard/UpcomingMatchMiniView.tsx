@@ -4,7 +4,7 @@ import MatchVs from '../matches/Match/MatchVs';
 import { PlayerLink } from '../players/controls/PlayerLink';
 import { MatchBlock } from '../matches/Match/MatchBlock';
 import { selectPlayers, selectUser, useTtcSelector } from '../../utils/hooks/storeHooks';
-import { getPlayerFormation } from '../matches/MatchesTable/matchesTableUtil';
+import { getPlayerFormation } from '../../models/utils/getPlayerFormation';
 import t from '../../locales';
 import { MatchDate } from '../matches/controls/MatchDate';
 

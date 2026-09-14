@@ -7,7 +7,7 @@ import { Icon } from '../controls/Icons/Icon';
 import { t } from '../../locales';
 import { IMatch } from '../../models/model-interfaces';
 import { selectMatches, selectUser, useTtcSelector } from '../../utils/hooks/storeHooks';
-import { getPlayerFormation } from './MatchesTable/matchesTableUtil';
+import { getPlayerFormation } from '../../models/utils/getPlayerFormation';
 import { browseTo } from '../../routes';
 
 // Header height (AppBar dense toolbar)

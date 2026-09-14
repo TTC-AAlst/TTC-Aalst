@@ -1,6 +1,7 @@
 import { Table } from 'react-bootstrap';
 import { IMatch, ITeam, PickedPlayer } from '../../../models/model-interfaces';
-import { getPlayerFormation, getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
+import { getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
+import { getPlayerFormation } from '../../../models/utils/getPlayerFormation';
 import { selectUser, useTtcSelector } from '../../../utils/hooks/storeHooks';
 import { useViewport } from '../../../utils/hooks/useViewport';
 import { MatchesTablePlayerLineUpHeader } from './MatchesTablePlayerLineUpHeader';

@@ -1,6 +1,7 @@
 import { Table } from 'react-bootstrap';
 import { IMatch, ITeam } from '../../../models/model-interfaces';
-import { getPlayerFormation, getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
+import { getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
+import { getPlayerFormation } from '../../../models/utils/getPlayerFormation';
 import { MatchesTablePlayerLineUpHeader } from './MatchesTablePlayerLineUpHeader';
 import {
   MatchesTablePlayerLineUpDateCell,
