@@ -1,3 +1,4 @@
+using OfficeOpenXml;
 using Ttc.DataAccess.Utilities.Excel;
 using Ttc.DataEntities;
 using Ttc.Model.Matches;
@@ -11,6 +12,8 @@ namespace Ttc.UnitTests;
 /// </summary>
 public class TeamsExcelFormationTests
 {
+    static TeamsExcelFormationTests() => ExcelPackage.License.SetNonCommercialOrganization("TTC Aalst");
+
     private const int DivisionId = 1957;
     private const int TeamAId = 493;
     private const int TeamBId = 494;
@@ -56,6 +59,8 @@ public class TeamsExcelFormationTests
         AwayTeamCode = awayTeamId == TeamBId ? "B" : "A",
     };
 
+    private static readonly Dictionary<DateTime, string> NoToog = [];
+
     private static TeamExcelModel SheetFor(IEnumerable<TeamExcelModel> sheets, string teamCode) => sheets.Single(x => x.Team == $"Sporta {teamCode}");
 
     [Fact]
@@ -63,7 +68,7 @@ public class TeamsExcelFormationTests
     {
         List<MatchEntity> matches = [NewMatch(1, TeamAId, null), NewMatch(2, null, TeamBId)];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
 
         Assert.Equal(["O01/001"], SheetFor(sheets, "A").Matches.Select(x => x.Match.FrenoyMatchId));
         Assert.Equal(["O02/001"], SheetFor(sheets, "B").Matches.Select(x => x.Match.FrenoyMatchId));
@@ -74,7 +79,7 @@ public class TeamsExcelFormationTests
     {
         List<MatchEntity> matches = [NewMatch(1, TeamAId, TeamBId)];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
 
         Assert.Equal("Aalst A", Assert.Single(SheetFor(sheets, "A").Matches).Home);
         Assert.Equal("Aalst B", Assert.Single(SheetFor(sheets, "B").Matches).Out);
@@ -88,9 +93,47 @@ public class TeamsExcelFormationTests
         derby.Players.Add(new MatchPlayerEntity { PlayerId = BertB, Name = "Bert", Home = false, Status = PlayerMatchStatus.NotPlay });
         List<MatchEntity> matches = [derby];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
 
         Assert.Equal(new Dictionary<string, string> { ["Ann"] = PlayerMatchStatus.Play }, Assert.Single(SheetFor(sheets, "A").Matches).PlayerDecisions);
         Assert.Equal(new Dictionary<string, string> { ["Bert"] = PlayerMatchStatus.NotPlay }, Assert.Single(SheetFor(sheets, "B").Matches).PlayerDecisions);
+    }
+
+    [Fact]
+    public void BuildFormationModel_AssignedToog_OnlyLandsOnTheHomeSheet()
+    {
+        var homeMatch = NewMatch(1, TeamAId, null);
+        var awayMatch = NewMatch(2, null, TeamBId);
+        List<MatchEntity> matches = [homeMatch, awayMatch];
+        var toogPerDay = new Dictionary<DateTime, string>
+        {
+            [homeMatch.Date.Date] = "Ann",
+            [awayMatch.Date.Date] = "Bert",
+        };
+
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, toogPerDay);
+
+        Assert.Equal("Ann", Assert.Single(SheetFor(sheets, "A").Matches).Toog);
+        Assert.Null(Assert.Single(SheetFor(sheets, "B").Matches).Toog);
+    }
+
+    [Fact]
+    public void Create_PutsBlockAndToogInTheTwoColumnsAfterThePlayers()
+    {
+        var homeMatch = NewMatch(1, TeamAId, null);
+        homeMatch.Date = homeMatch.Date.AddHours(Constants.DefaultStartHour);
+        homeMatch.Block = PlayerMatchStatus.Captain;
+        homeMatch.Players.Add(new MatchPlayerEntity { PlayerId = AnnA, Name = "Ann", Home = true, Status = PlayerMatchStatus.Captain });
+        List<MatchEntity> matches = [homeMatch];
+        var toogPerDay = new Dictionary<DateTime, string> { [homeMatch.Date.Date] = "Bert" };
+
+        byte[] excel = TeamsExcelCreator.CreateFormation(NewTeams(), matches, Players, Clubs, toogPerDay).Create();
+
+        using var package = new ExcelPackage(new MemoryStream(excel));
+        var sheet = package.Workbook.Worksheets["Sporta A"];
+        Assert.Equal(ExcelExportResources.MatchBlock, sheet.Cells[1, 8].Text);
+        Assert.Equal(ExcelExportResources.MatchToog, sheet.Cells[1, 9].Text);
+        Assert.Equal(ExcelExportResources.MatchBlockCaptainName, sheet.Cells[2, 8].Text);
+        Assert.Equal("Bert", sheet.Cells[2, 9].Text);
     }
 }

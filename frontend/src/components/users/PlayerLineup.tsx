@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import dayjs from 'dayjs';
+import React, { useEffect, useState } from 'react';
+import dayjs, { Dayjs } from 'dayjs';
 import cn from 'classnames';
 import Table from 'react-bootstrap/Table';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
@@ -13,21 +13,39 @@ import { Icon } from '../controls/Icons/Icon';
 import { SwitchBetweenFirstAndLastRoundButton, getFirstOrLastMatches, getFirstOrLast } from '../teams/SwitchBetweenFirstAndLastRoundButton';
 import { t } from '../../locales';
 import { selectPlayer } from '../../reducers/matchesReducer';
-import { IMatch, ITeam, MatchPlayerStatus } from '../../models/model-interfaces';
-import { useTtcDispatch } from '../../utils/hooks/storeHooks';
+import { IMatch, ITeam, IToogDay, MatchPlayerStatus } from '../../models/model-interfaces';
+import { selectTeams, useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
+import { fetchMyToog, toggleMyToog } from '../../reducers/toogReducer';
 
 type PlayerLineupProps = {
   playerId: number;
   teams: ITeam[];
   disableBlockedMatches?: boolean;
+  /** The toog endpoints always act on the logged in player, so not in the captain view */
+  showToog?: boolean;
 };
 
-const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disableBlockedMatches }: PlayerLineupProps) => {
+/** A club home day without an own match still gets a row */
+type LineupRow = {
+  date: Dayjs;
+  match?: IMatch;
+  toog?: IToogDay;
+};
+
+const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disableBlockedMatches, showToog }: PlayerLineupProps) => {
   const dispatch = useTtcDispatch();
   const [filter, setFilter] = useState<string | null>(null);
   const [showCommentId, setShowCommentId] = useState(0);
   const [comment, setComment] = useState('');
   const [matchesFilter, setMatchesFilter] = useState(getFirstOrLast);
+  const toogDays = useTtcSelector(state => state.toog.mine);
+  const allTeams = useTtcSelector(selectTeams);
+
+  useEffect(() => {
+    if (showToog) {
+      dispatch(fetchMyToog());
+    }
+  }, [dispatch, showToog]);
 
   const onChangePlaying = (match: IMatch, status: MatchPlayerStatus, statusNote: string) => {
     dispatch(
@@ -56,6 +74,29 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
     .sort((a, b) => a.date.valueOf() - b.date.valueOf());
 
   const { matches, hasMore } = getFirstOrLastMatches(allMatchesToCome, matchesFilter);
+
+  // Toog is club wide: the competition and round filters only apply to the match rows
+  const matchRows: LineupRow[] = matches.map(match => ({
+    date: match.date,
+    match,
+    toog: showToog ? toogDays.find(day => match.date.isSame(day.date, 'day')) : undefined,
+  }));
+  const toogOnlyRows: LineupRow[] = !showToog
+    ? []
+    : toogDays.filter(day => !matches.some(match => match.date.isSame(day.date, 'day'))).map(toog => ({ date: dayjs(toog.date), toog }));
+
+  // Two own matches on the same home day is still one toog
+  const seenToogDates = new Set<string>();
+  const rows = [...matchRows, ...toogOnlyRows]
+    .sort((a, b) => a.date.valueOf() - b.date.valueOf())
+    .map(row => {
+      if (!row.toog || seenToogDates.has(row.toog.date)) {
+        return { ...row, toog: undefined };
+      }
+      seenToogDates.add(row.toog.date);
+      return row;
+    });
+
   const allText = t('common.all');
   const activeFilter = filter || allText;
 
@@ -85,10 +126,55 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
             <th className="d-none d-sm-table-cell">{t('common.date')}</th>
             <th>{t('teamCalendar.match')}</th>
             <th>{t('profile.play.tableTitle')}</th>
+            {showToog ? <th>{t('profile.play.toogTitle')}</th> : null}
           </tr>
         </thead>
         <tbody>
-          {matches.map(match => {
+          {rows.map(row => {
+            const { match, toog } = row;
+            const rowKey = match ? `match-${match.id}` : `toog-${row.date.valueOf()}`;
+
+            const toogCell = !showToog ? null : (
+              <td>
+                {toog?.assigned ? (
+                  <div className="text-muted">
+                    <Icon fa="fa fa-lock" style={{ marginRight: 4 }} />
+                    {t('profile.play.toogAssigned')}
+                  </div>
+                ) : toog ? (
+                  <Button
+                    variant={toog.available ? 'success' : 'outline-secondary'}
+                    onClick={() => dispatch(toggleMyToog({ date: toog.date, available: !toog.available }))}
+                  >
+                    {t('profile.play.toogCanDo')}
+                  </Button>
+                ) : null}
+              </td>
+            );
+
+            if (!match) {
+              const homeTeams = allTeams.filter(team => toog?.homeTeamIds.includes(team.id)).map(team => team.renderOwnTeamTitle());
+              // The row is also match-less when a filter hid his match, or when it already started
+              const playsHimself = propTeams.some(team => team.getMatches().some(own => own.date.isSame(row.date, 'day')));
+              return (
+                <tr key={rowKey}>
+                  <td className="d-none d-lg-table-cell" />
+                  <td className="d-none d-sm-table-cell">{t('match.date', row.date.format('ddd D/M'))}</td>
+                  <td className="text-muted">
+                    <span className="d-block d-md-none">
+                      {t('match.date', row.date.format('ddd D/M'))}
+                      <br />
+                    </span>
+                    {playsHimself ? null : <div>{t('profile.play.toogNoOwnMatch')}</div>}
+                    {homeTeams.length ? <div>{homeTeams.join(', ')}</div> : null}
+                  </td>
+                  <td className="d-table-cell d-md-none" />
+                  <td className="d-none d-md-table-cell" />
+                  {toogCell}
+                </tr>
+              );
+            }
+
             const formation = match.getPlayerFormation('Play');
             const matchPlayer = formation.find(x => x.id === playerId)?.matchPlayer;
             const statusNote = matchPlayer ? matchPlayer.statusNote : '';
@@ -143,7 +229,7 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
             }
 
             return (
-              <tr key={match.id} className={`table-${getPlayingStatusClass(matchPlayer?.status)}`}>
+              <tr key={rowKey} className={`table-${getPlayingStatusClass(matchPlayer?.status)}`}>
                 <td className="d-none d-lg-table-cell">{match.frenoyMatchId}</td>
                 <td className="d-none d-sm-table-cell">{t('match.date', match.getDisplayDate())}</td>
                 <td>
@@ -186,6 +272,7 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
                     <Comment matchPlayer={matchPlayer} />
                   ) : null}
                 </td>
+                {toogCell}
               </tr>
             );
           })}

@@ -130,6 +130,10 @@ export default {
         extraCommentHelp: 'Klik op een van de knoppen om te bewaren',
         contactCaptain: 'Neem contact op met de kapitein om je opstelling te wijzigen',
         matchPlayed: 'Wedstrijd gespeeld',
+        toogTitle: 'Toog',
+        toogCanDo: 'Ik kan toog doen',
+        toogAssigned: 'Neem contact op met het bestuur als je de toog toch niet kan doen',
+        toogNoOwnMatch: 'Jouw ploeg speelt niet',
       },
     },
     intro: {
@@ -484,6 +488,12 @@ export default {
         del: 'Verwijderen',
         boardFunction: 'Functie',
         sort: 'Sortering',
+      },
+      toog: {
+        homeTeams: 'Thuisploegen',
+        volunteers: 'Gaf zich op',
+        other: 'Andere speler',
+        clear: 'Aanduiding wissen',
       },
     },
   },

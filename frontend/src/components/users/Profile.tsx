@@ -49,7 +49,7 @@ export const Profile = () => {
       case tabEventKeys.editPassword:
         return <ChangePassword />;
       case tabEventKeys.editHolidays:
-        return <PlayerLineup teams={yourTeams} playerId={user.playerId} disableBlockedMatches />;
+        return <PlayerLineup teams={yourTeams} playerId={user.playerId} disableBlockedMatches showToog />;
       case tabEventKeys.editCaptain:
         return <CaptainPlayerLineup teams={yourCaptainTeams} />;
       default:

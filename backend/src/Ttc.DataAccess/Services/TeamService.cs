@@ -193,7 +193,21 @@ public class TeamService
 
         var clubs = await _context.Clubs.ToArrayAsync();
 
-        var excelCreator = TeamsExcelCreator.CreateFormation(teams, matches, players, clubs);
+        var assigned = await _context.Toog
+            .Where(x => x.Assigned)
+            .Include(x => x.Player)
+            .ToArrayAsync();
+
+        // Geen enkele index dwingt één aanduiding per dag af, dus een dubbele mag de export niet kelderen
+        var toogPerDay = assigned
+            .GroupBy(x => x.Date)
+            .ToDictionary(x => x.Key, x =>
+            {
+                var player = x.First().Player!;
+                return player.Alias ?? player.FirstName ?? "???";
+            });
+
+        var excelCreator = TeamsExcelCreator.CreateFormation(teams, matches, players, clubs, toogPerDay);
         return excelCreator.Create();
     }
 }

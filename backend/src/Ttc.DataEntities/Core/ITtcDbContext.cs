@@ -26,6 +26,7 @@ public interface ITtcDbContext : IAsyncDisposable
 
     DbSet<ParameterEntity> Parameters { get; set; }
     DbSet<EventEntity> Events { get; set; }
+    DbSet<ToogEntity> Toog { get; set; }
 
     int CurrentSeason { get; set; }
     int CurrentFrenoySeason { get; }

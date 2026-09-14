@@ -9,6 +9,7 @@ import ProfilePhotoForm, { ProfilePhotoAvatarForm } from '../users/ProfilePhotoF
 import { AdminEmail } from './AdminEmail';
 import { AdminMatches } from './AdminMatches';
 import { AdminParams } from './AdminParams';
+import { AdminToog } from './AdminToog';
 import { t } from '../../locales';
 import { selectTeams, selectUser, useTtcSelector } from '../../utils/hooks/storeHooks';
 
@@ -17,6 +18,7 @@ const tabEventKeys = {
   teams: 'teams',
   clubs: 'clubs',
   formation: 'formation',
+  toog: 'toog',
   pictures: 'pictures',
   emails: 'emails',
   matches: 'matches',
@@ -42,6 +44,8 @@ const Admin = () => {
         return <AdminClubs />;
       case tabEventKeys.formation:
         return <AdminPlayerLineup />;
+      case tabEventKeys.toog:
+        return <AdminToog />;
       case tabEventKeys.pictures:
         return (
           <div>
@@ -70,6 +74,7 @@ const Admin = () => {
     { key: tabEventKeys.teams, title: 'Teams' },
     { key: tabEventKeys.clubs, title: 'Clubs' },
     { key: tabEventKeys.formation, title: 'Opstellingen' },
+    { key: tabEventKeys.toog, title: 'Toog' },
     { key: tabEventKeys.matches, title: 'Matchen' },
     { key: tabEventKeys.pictures, title: "Foto's" },
     { key: tabEventKeys.emails, title: 'Email' },

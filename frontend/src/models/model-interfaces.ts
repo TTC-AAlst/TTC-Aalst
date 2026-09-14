@@ -418,3 +418,17 @@ export interface IClubManager {
   description: string;
   sortOrder: number;
 }
+
+export type IToogDay = {
+  date: string;
+  homeTeamIds: number[];
+  available: boolean;
+  assigned: boolean;
+};
+
+export type IToogAdminDay = {
+  date: string;
+  homeTeamIds: number[];
+  availablePlayerIds: number[];
+  assignedPlayerId: number | null;
+};
