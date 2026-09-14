@@ -47,4 +47,24 @@ describe('PlayerCompetitionBadge', () => {
     );
     expect(screen.getByText('Wouter').className).toContain('bg-secondary');
   });
+
+  it('turns red and warns when the player is picked elsewhere that week', () => {
+    renderWithProviders(
+      <TestRouter>
+        <PlayerCompetitionBadge plyInfo={plyInfo('Major') as never} competition="Vttl" conflictTeams={['Sporta B']} />
+      </TestRouter>,
+    );
+    expect(screen.getByText('Wouter').className).toContain('bg-danger');
+    expect(document.querySelector('.fa-exclamation-triangle')).toBeInTheDocument();
+  });
+
+  it('stays green without a conflict', () => {
+    renderWithProviders(
+      <TestRouter>
+        <PlayerCompetitionBadge plyInfo={plyInfo('Major') as never} competition="Vttl" />
+      </TestRouter>,
+    );
+    expect(screen.getByText('Wouter').className).toContain('bg-success');
+    expect(document.querySelector('.fa-exclamation-triangle')).not.toBeInTheDocument();
+  });
 });
