@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import { renderWithProviders, TestRouter } from '../../../utils/test-utils';
 import { PlayerCompetitionBadge, PlayerCompetitionButton } from '../PlayerBadges';
@@ -48,7 +48,7 @@ describe('PlayerCompetitionBadge', () => {
     expect(screen.getByText('Wouter').className).toContain('bg-secondary');
   });
 
-  it('turns red and warns when the player is picked elsewhere that week', () => {
+  it('turns red and warns when the player is picked elsewhere that week', async () => {
     renderWithProviders(
       <TestRouter>
         <PlayerCompetitionBadge plyInfo={plyInfo('Major') as never} competition="Vttl" conflictTeams={['Sporta B']} />
@@ -56,6 +56,9 @@ describe('PlayerCompetitionBadge', () => {
     );
     expect(screen.getByText('Wouter').className).toContain('bg-danger');
     expect(document.querySelector('.fa-exclamation-triangle')).toBeInTheDocument();
+
+    fireEvent.mouseOver(document.querySelector('.fa-exclamation-triangle')!);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Speelt deze week ook in Sporta B');
   });
 
   it('stays green without a conflict', () => {

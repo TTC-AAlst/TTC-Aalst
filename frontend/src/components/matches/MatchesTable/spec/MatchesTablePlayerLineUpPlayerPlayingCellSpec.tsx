@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import { renderWithProviders } from '../../../../utils/test-utils';
 import { MatchesTablePlayerLineUpPlayerPlayingCell } from '../MatchesTablePlayerLineUpCells';
@@ -22,10 +22,13 @@ const renderCell = (conflictTeams?: string[]) =>
   );
 
 describe('MatchesTablePlayerLineUpPlayerPlayingCell', () => {
-  it('turns red and warns when the player is picked elsewhere that week', () => {
-    renderCell(['Sporta B']);
+  it('turns red and warns when the player is picked elsewhere that week', async () => {
+    renderCell(['Sporta B', 'Sporta C']);
     expect(screen.getByText('Arne').className).toContain('bg-danger');
     expect(document.querySelector('.fa-exclamation-triangle')).toBeInTheDocument();
+
+    fireEvent.mouseOver(document.querySelector('.fa-exclamation-triangle')!);
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Speelt deze week ook in Sporta B, Sporta C');
   });
 
   it('keeps the thumbs up without a conflict', () => {
