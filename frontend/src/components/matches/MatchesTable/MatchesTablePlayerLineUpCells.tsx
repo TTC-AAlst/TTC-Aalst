@@ -71,19 +71,15 @@ type MatchesTablePlayerLineUpPlayerPlayingCellProps = {
   match: IMatch;
   player: IPlayer;
   team: ITeam;
-  /** Other teams the player is also lined up for this playing week */
   conflictTeams?: string[];
 };
 
 export const MatchesTablePlayerLineUpPlayerPlayingCell = ({ display, player, team, match, conflictTeams }: MatchesTablePlayerLineUpPlayerPlayingCellProps) => {
-  let color = match.block ? 'bg-success' : 'bg-warning';
-  if (conflictTeams?.length) {
-    color = 'bg-danger';
-  }
+  const color = conflictTeams?.length ? 'danger' : match.block ? 'success' : 'warning';
   return (
     <td>
       {display && (
-        <span className={`badge label-as-badge ${color}`} style={{ fontWeight: 'normal' }}>
+        <span className={`badge label-as-badge bg-${color}`} style={{ fontWeight: 'normal' }}>
           {player.alias}
           <span style={{ marginLeft: 5, marginRight: 5, fontSize: 10 }}>{player.getCompetition(team.competition)?.ranking}</span>
           {conflictTeams?.length ? (

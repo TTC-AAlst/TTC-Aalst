@@ -1,7 +1,6 @@
 import { IMatch, IMatchPlayerInfo } from '../model-interfaces';
 import { getPlayerFormation } from './getPlayerFormation';
 
-/** Key into the map returned by findLineupConflicts */
 export const conflictKey = (matchId: number, playerId: number): string => `${matchId}-${playerId}`;
 
 type Booking = {
