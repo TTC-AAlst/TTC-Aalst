@@ -63,7 +63,12 @@ internal class TeamsExcelCreator
                         }
 
                         string blockName = match.Match.Block == PlayerMatchStatus.Major ? ExcelExportResources.MatchBlockAdminName : ExcelExportResources.MatchBlockCaptainName;
-                        sheet.Cells[rowIndex, totalColumnCount].Value = blockName;
+                        sheet.Cells[rowIndex, totalColumnCount - 1].Value = blockName;
+                    }
+
+                    if (!string.IsNullOrEmpty(match.Toog))
+                    {
+                        sheet.Cells[rowIndex, totalColumnCount].Value = match.Toog;
                     }
 
                     foreach (var playerDecision in match.PlayerDecisions.Where(x => playerToColumnMapping.ContainsKey(x.Key)))
@@ -118,6 +123,7 @@ internal class TeamsExcelCreator
             .ToArray();
         headers.AddRange(players.Select(x => $"{x.Name} ({x.Ranking})"));
         headers.Add(ExcelExportResources.MatchBlock);
+        headers.Add(ExcelExportResources.MatchToog);
         totalHeaderCount = headers.Count;
         var playerNameToColumnIndex = players.ToDictionary(x => x.Name, x => x.ColumnIndex);
 
@@ -144,10 +150,10 @@ internal class TeamsExcelCreator
 
 
     #region Model Creation
-    public static TeamsExcelCreator CreateFormation(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs)
-        => new(BuildFormationModel(teams, matches, players, clubs));
+    public static TeamsExcelCreator CreateFormation(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs, Dictionary<DateTime, string> toogPerDay)
+        => new(BuildFormationModel(teams, matches, players, clubs, toogPerDay));
 
-    internal static List<TeamExcelModel> BuildFormationModel(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs)
+    internal static List<TeamExcelModel> BuildFormationModel(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs, Dictionary<DateTime, string> toogPerDay)
     {
         var result = new List<TeamExcelModel>();
         foreach (var team in teams.OrderByDescending(x => x.Competition).ThenBy(x => x.TeamCode))
@@ -194,6 +200,11 @@ internal class TeamsExcelCreator
                             teamMatch.CaptainDecisions.Add(matchPlayer.Name);
                         }
                     }
+                }
+
+                if (isHomeTeam && toogPerDay.TryGetValue(match.Date.Date, out string? toogName))
+                {
+                    teamMatch.Toog = toogName;
                 }
 
                 teamModel.Matches.Add(teamMatch);
@@ -254,6 +265,7 @@ internal class TeamMatchExcelModel
     /// </summary>
     public IDictionary<string, string> PlayerDecisions { get; set; }
     public IList<string> CaptainDecisions { get; set; }
+    public string? Toog { get; set; }
 
     public TeamMatchExcelModel(MatchEntity match, ClubEntity[] clubs)
     {

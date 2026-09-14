@@ -56,6 +56,8 @@ public class TeamsExcelFormationTests
         AwayTeamCode = awayTeamId == TeamBId ? "B" : "A",
     };
 
+    private static readonly Dictionary<DateTime, string> NoToog = [];
+
     private static TeamExcelModel SheetFor(IEnumerable<TeamExcelModel> sheets, string teamCode) => sheets.Single(x => x.Team == $"Sporta {teamCode}");
 
     [Fact]
@@ -63,7 +65,7 @@ public class TeamsExcelFormationTests
     {
         List<MatchEntity> matches = [NewMatch(1, TeamAId, null), NewMatch(2, null, TeamBId)];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
 
         Assert.Equal(["O01/001"], SheetFor(sheets, "A").Matches.Select(x => x.Match.FrenoyMatchId));
         Assert.Equal(["O02/001"], SheetFor(sheets, "B").Matches.Select(x => x.Match.FrenoyMatchId));
@@ -74,7 +76,7 @@ public class TeamsExcelFormationTests
     {
         List<MatchEntity> matches = [NewMatch(1, TeamAId, TeamBId)];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
 
         Assert.Equal("Aalst A", Assert.Single(SheetFor(sheets, "A").Matches).Home);
         Assert.Equal("Aalst B", Assert.Single(SheetFor(sheets, "B").Matches).Out);
@@ -88,9 +90,27 @@ public class TeamsExcelFormationTests
         derby.Players.Add(new MatchPlayerEntity { PlayerId = BertB, Name = "Bert", Home = false, Status = PlayerMatchStatus.NotPlay });
         List<MatchEntity> matches = [derby];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
 
         Assert.Equal(new Dictionary<string, string> { ["Ann"] = PlayerMatchStatus.Play }, Assert.Single(SheetFor(sheets, "A").Matches).PlayerDecisions);
         Assert.Equal(new Dictionary<string, string> { ["Bert"] = PlayerMatchStatus.NotPlay }, Assert.Single(SheetFor(sheets, "B").Matches).PlayerDecisions);
+    }
+
+    [Fact]
+    public void BuildFormationModel_AssignedToog_OnlyLandsOnTheHomeSheet()
+    {
+        var homeMatch = NewMatch(1, TeamAId, null);
+        var awayMatch = NewMatch(2, null, TeamBId);
+        List<MatchEntity> matches = [homeMatch, awayMatch];
+        var toogPerDay = new Dictionary<DateTime, string>
+        {
+            [homeMatch.Date.Date] = "Ann",
+            [awayMatch.Date.Date] = "Bert",
+        };
+
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, toogPerDay);
+
+        Assert.Equal("Ann", Assert.Single(SheetFor(sheets, "A").Matches).Toog);
+        Assert.Null(Assert.Single(SheetFor(sheets, "B").Matches).Toog);
     }
 }

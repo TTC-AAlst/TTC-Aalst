@@ -156,6 +156,9 @@
   <data name="MatchOut" xml:space="preserve">
     <value>Uit</value>
   </data>
+  <data name="MatchToog" xml:space="preserve">
+    <value>Toog</value>
+  </data>
   <data name="PlayerAddress" xml:space="preserve">
     <value>Adres</value>
   </data>

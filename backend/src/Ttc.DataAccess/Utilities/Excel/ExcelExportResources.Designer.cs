@@ -178,6 +178,15 @@ namespace Ttc.DataAccess.Utilities.Excel {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Toog.
+        /// </summary>
+        internal static string MatchToog {
+            get {
+                return ResourceManager.GetString("MatchToog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adres.
         /// </summary>
         internal static string PlayerAddress {
