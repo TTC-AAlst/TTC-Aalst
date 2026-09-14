@@ -28,8 +28,8 @@ On Windows: set `TESTCONTAINERS_RYUK_DISABLED=true`
 ## Migrations
 
 ```sh
-dotnet ef migrations add Name -p src/Ttc.DataAccess -s src/Ttc.WebApi
-dotnet ef database update -p src/Ttc.DataAccess -s src/Ttc.WebApi
+dotnet ef migrations add Name -p src/Ttc.DataAccess -s src/Ttc.DataAccess
+dotnet ef database update -p src/Ttc.DataAccess -s src/Ttc.DataAccess
 ```
 
 ## Frenoy API
