@@ -488,6 +488,12 @@ export default {
         boardFunction: 'Functie',
         sort: 'Sortering',
       },
+      toog: {
+        homeTeams: 'Thuisploegen',
+        volunteers: 'Gaf zich op',
+        other: 'Andere speler',
+        clear: 'Aanduiding wissen',
+      },
     },
   },
 };
