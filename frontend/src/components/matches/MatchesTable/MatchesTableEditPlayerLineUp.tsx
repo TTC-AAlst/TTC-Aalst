@@ -2,7 +2,8 @@ import { Table } from 'react-bootstrap';
 import { IMatch, ITeam, PickedPlayer } from '../../../models/model-interfaces';
 import { getTablePlayers, tableMatchViewportWidths } from './matchesTableUtil';
 import { getPlayerFormation } from '../../../models/utils/getPlayerFormation';
-import { selectUser, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { selectLineupConflicts, selectUser, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { conflictKey } from '../../../models/utils/lineupConflicts';
 import { useViewport } from '../../../utils/hooks/useViewport';
 import { MatchesTablePlayerLineUpHeader } from './MatchesTablePlayerLineUpHeader';
 import {
@@ -24,6 +25,7 @@ type MatchesTablePlayerLineUpProps = {
 
 export const MatchesTableEditPlayerLineUp = ({ team, matches, tablePlayers, onTablePlayerSelect }: MatchesTablePlayerLineUpProps) => {
   const user = useTtcSelector(selectUser);
+  const conflicts = useTtcSelector(selectLineupConflicts);
   const viewport = useViewport();
   const teamPlayers = getTablePlayers(team);
 
@@ -51,6 +53,7 @@ export const MatchesTableEditPlayerLineUp = ({ team, matches, tablePlayers, onTa
                       match={match}
                       player={ply.player}
                       team={team}
+                      conflictTeams={conflicts.get(conflictKey(match.id, ply.player.id))}
                     />
                   );
                 }

@@ -7,6 +7,7 @@ import MatchVs from '../Match/MatchVs';
 import { FrenoyWeekLink } from '../../controls/Buttons/FrenoyButton';
 import { MatchBlock } from '../Match/MatchBlock';
 import { Icon } from '../../controls/Icons/Icon';
+import { t } from '../../../locales';
 
 type MatchesTablePlayerLineUpProps = {
   team: ITeam;
@@ -70,16 +71,28 @@ type MatchesTablePlayerLineUpPlayerPlayingCellProps = {
   match: IMatch;
   player: IPlayer;
   team: ITeam;
+  /** Other teams the player is also lined up for this playing week */
+  conflictTeams?: string[];
 };
 
-export const MatchesTablePlayerLineUpPlayerPlayingCell = ({ display, player, team, match }: MatchesTablePlayerLineUpPlayerPlayingCellProps) => (
-  <td>
-    {display && (
-      <span className={`badge label-as-badge ${match.block ? 'bg-success' : 'bg-warning'}`} style={{ fontWeight: 'normal' }}>
-        {player.alias}
-        <span style={{ marginLeft: 5, marginRight: 5, fontSize: 10 }}>{player.getCompetition(team.competition)?.ranking}</span>
-        <i className="fa fa-thumbs-o-up" />
-      </span>
-    )}
-  </td>
-);
+export const MatchesTablePlayerLineUpPlayerPlayingCell = ({ display, player, team, match, conflictTeams }: MatchesTablePlayerLineUpPlayerPlayingCellProps) => {
+  let color = match.block ? 'bg-success' : 'bg-warning';
+  if (conflictTeams?.length) {
+    color = 'bg-danger';
+  }
+  return (
+    <td>
+      {display && (
+        <span className={`badge label-as-badge ${color}`} style={{ fontWeight: 'normal' }}>
+          {player.alias}
+          <span style={{ marginLeft: 5, marginRight: 5, fontSize: 10 }}>{player.getCompetition(team.competition)?.ranking}</span>
+          {conflictTeams?.length ? (
+            <Icon fa="fa fa-exclamation-triangle" style={{ marginRight: 0 }} tooltip={t('match.plys.alsoPlaysIn', conflictTeams.join(', '))} />
+          ) : (
+            <i className="fa fa-thumbs-o-up" />
+          )}
+        </span>
+      )}
+    </td>
+  );
+};
