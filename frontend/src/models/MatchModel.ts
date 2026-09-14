@@ -69,9 +69,12 @@ export default class MatchModel implements IMatch {
   away: ITeamOpponent = { teamCode: '', clubId: 0 };
   /** True when TTC Aalst is either home or away team */
   isOurMatch = false;
-  /** If isOurMatch, get the IMatchOwn MatchModel */
-  getOurMatch() {
-    return storeUtil.getMatch(this.id);
+  /**
+   * If isOurMatch, get the IMatchOwn MatchModel
+   * @param teamId Which of our teams looks at it; a derby has two views on one match
+   */
+  getOurMatch(teamId?: number) {
+    return storeUtil.getMatch(this.id, teamId);
   }
 
   constructor(json: IStoreMatchCommon & Partial<IFullStoreMatchOwn> & { home?: ITeamOpponent; away?: ITeamOpponent }) {

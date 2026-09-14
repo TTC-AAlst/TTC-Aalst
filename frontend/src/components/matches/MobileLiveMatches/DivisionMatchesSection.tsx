@@ -82,7 +82,7 @@ export const DivisionMatchesSection = ({ match }: DivisionMatchesSectionProps) =
                     ) : !m.isSyncedWithFrenoy && m.scoreType !== 'WalkOver' ? (
                       <span style={{ color: '#666', fontWeight: 400 }}>{m.date.format('HH:mm')}</span>
                     ) : (
-                      <OpponentMatchScore readonlyMatch={m} />
+                      <OpponentMatchScore readonlyMatch={m} ownTeamId={team.id} />
                     )}
                   </td>
                   <td style={{ ...teamCellStyle, textAlign: 'right' }}>

@@ -134,7 +134,7 @@ interface IStoreMatchOther {
  */
 interface IMatchOther extends IStoreMatchOther {
   /** If isOurMatch, get the IMatchOwn MatchModel */
-  getOurMatch: () => IMatch;
+  getOurMatch: (teamId?: number) => IMatch;
 
   getClub(which: 'home' | 'away'): IClub | undefined;
   won(opponent: ITeamOpponent): boolean;

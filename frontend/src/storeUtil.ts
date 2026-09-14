@@ -99,10 +99,15 @@ const util = {
     return new PlayerModel(player);
   },
 
-  getMatch(matchId: number): IMatch {
-    const { matches } = store.getState();
+  /** @param teamId Which of our teams looks at the match; a derby has two views on one match */
+  getMatch(matchId: number, teamId?: number): IMatch {
+    const { matches, teams } = store.getState();
     const match = matches.find(m => m.id === matchId)!;
-    return new MatchModel(match);
+    if (!teamId || match.teamId === teamId) {
+      return new MatchModel(match);
+    }
+    const ownTeamCode = teams.find(team => team.id === match.teamId)?.teamCode ?? '';
+    return new MatchModel(mirrorDerbyMatch(match, ownTeamCode));
   },
   getMatches(): IMatch[] {
     const { matches } = store.getState();
@@ -115,16 +120,8 @@ const util = {
     },
 
     getTeamMatches(teamId: number): IMatch[] {
-      const { matches, teams } = store.getState();
-      return matches
-        .filter(m => m.teamId === teamId || m.opponentTeamId === teamId)
-        .map(m => {
-          if (m.teamId === teamId) {
-            return new MatchModel(m);
-          }
-          const ownTeamCode = teams.find(team => team.id === m.teamId)?.teamCode ?? '';
-          return new MatchModel(mirrorDerbyMatch(m, ownTeamCode));
-        });
+      const { matches } = store.getState();
+      return matches.filter(m => m.teamId === teamId || m.opponentTeamId === teamId).map(m => util.getMatch(m.id, teamId));
     },
   },
 };

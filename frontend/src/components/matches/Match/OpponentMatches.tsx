@@ -82,7 +82,7 @@ export const OpponentMatches = ({ team, opponent, readonlyMatches, roundSwitchBu
               ) : null}
 
               <td key="6">
-                <OpponentMatchScore readonlyMatch={match} />
+                <OpponentMatchScore readonlyMatch={match} ownTeamId={team.id} />
               </td>
             </tr>,
             <OtherMatchPlayerResultsTableRow key="7" show={match.isSyncedWithFrenoy && !!showMatch[match.id]} match={match} colSpan={6} />,
