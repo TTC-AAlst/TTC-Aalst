@@ -34,10 +34,6 @@ public class ToogControllerTests : IntegrationTestBase
         await base.InitializeAsync();
         await using var context = GetDbContext();
         await context.Database.MigrateAsync();
-        // The migrations annotate identity columns with Pomelo's "MySql:ValueGenerationStrategy", which
-        // MySql.EntityFrameworkCore ignores, so a migrated database has no AUTO_INCREMENT anywhere.
-        await context.Database.ExecuteSqlRawAsync("ALTER TABLE Toog MODIFY Id INT NOT NULL AUTO_INCREMENT");
-
         if (!await context.Parameters.AnyAsync())
         {
             context.Parameters.Add(new ParameterEntity { Key = "year", Value = "2024" });

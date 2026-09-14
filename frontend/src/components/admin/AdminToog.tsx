@@ -52,11 +52,6 @@ export const AdminToog = () => {
                   {playerName(availableId)}
                 </Button>
               ))}
-              {day.assignedPlayerId && !day.availablePlayerIds.includes(day.assignedPlayerId) ? (
-                <Button size="sm" variant="success" style={{ marginRight: 5 }} disabled>
-                  {playerName(day.assignedPlayerId)}
-                </Button>
-              ) : null}
               {day.assignedPlayerId ? (
                 <Button size="sm" variant="link" aria-label={t('admin.toog.clear')} onClick={() => dispatch(assignToog({ date: day.date, playerId: null }))}>
                   <Icon fa="fa fa-times" />

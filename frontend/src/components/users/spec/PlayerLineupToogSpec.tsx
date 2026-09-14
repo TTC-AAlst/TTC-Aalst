@@ -119,12 +119,30 @@ describe('PlayerLineup toog column', () => {
     });
 
     expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(2);
-    expect(screen.queryByText('Jouw ploeg speelt niet')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Opponent B')).toHaveLength(2);
 
     fireEvent.click(screen.getByText('Sporta'));
 
+    // Both days keep their toggle, but only the Sporta day is still a match row
     expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(2);
-    expect(screen.getByText('Jouw ploeg speelt niet')).toBeInTheDocument();
+    expect(screen.getAllByText('Opponent B')).toHaveLength(1);
+  });
+
+  it('does not claim his team is off when a filter merely hid his match', async () => {
+    const sportaDay = homeDay.add(2, 'day');
+    const days: IToogDay[] = [toogDays[0]!, { date: sportaDay.toISOString(), homeTeamIds: [11], available: false, assigned: false }];
+    vi.spyOn(http, 'get').mockResolvedValue(days);
+    const vttl = createTeam([homeDay.hour(20)]);
+    const sporta = createTeam([sportaDay.hour(20)], { id: 11, competition: 'Sporta', teamCode: 'B' });
+
+    renderWithProviders(<PlayerLineup teams={[vttl, sporta]} playerId={playerId} showToog />, {
+      preloadedState: { toog: { mine: days, admin: [] } },
+    });
+    await screen.findAllByText('Ik kan toog doen');
+
+    fireEvent.click(screen.getByText('Sporta'));
+
+    expect(screen.queryByText('Jouw ploeg speelt niet')).not.toBeInTheDocument();
   });
 
   it('renders one toggle when two own matches fall on the same home day', async () => {

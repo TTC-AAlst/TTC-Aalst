@@ -154,6 +154,8 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
 
             if (!match) {
               const homeTeams = allTeams.filter(team => toog?.homeTeamIds.includes(team.id)).map(team => team.renderOwnTeamTitle());
+              // The row is also match-less when a filter hid his match, or when it already started
+              const playsHimself = propTeams.some(team => team.getMatches().some(own => own.date.isSame(row.date, 'day')));
               return (
                 <tr key={rowKey}>
                   <td className="d-none d-lg-table-cell" />
@@ -163,7 +165,7 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
                       {t('match.date', row.date.format('ddd D/M'))}
                       <br />
                     </span>
-                    <div>{t('profile.play.toogNoOwnMatch')}</div>
+                    {playsHimself ? null : <div>{t('profile.play.toogNoOwnMatch')}</div>}
                     {homeTeams.length ? <div>{homeTeams.join(', ')}</div> : null}
                   </td>
                   <td className="d-table-cell d-md-none" />

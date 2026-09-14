@@ -128,8 +128,9 @@ public class ToogService
     public async Task<ToogAdminDay[]> Get()
     {
         var homeDays = await GetHomeDays();
+        var today = TtcDbContext.GetCurrentBelgianDateTime().Date;
         var rows = await _context.Toog
-            .Where(x => x.Date >= TtcDbContext.GetCurrentBelgianDateTime().Date)
+            .Where(x => x.Date >= today)
             .ToArrayAsync();
 
         return homeDays

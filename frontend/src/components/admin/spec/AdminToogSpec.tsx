@@ -59,12 +59,6 @@ describe('AdminToog', () => {
     await waitFor(() => expect(http.post).toHaveBeenCalledWith('/toog/assign', { date: homeDay.toISOString(), playerId: 1 }));
   });
 
-  it('shows an assigned player who did not volunteer', async () => {
-    renderAdminToog([{ ...unassignedDay, availablePlayerIds: [], assignedPlayerId: 1 }]);
-
-    expect(await screen.findByRole('button', { name: 'Wouter' })).toBeInTheDocument();
-  });
-
   it('assigns a player who did not volunteer, through the autocomplete', async () => {
     renderAdminToog([unassignedDay]);
     await screen.findByRole('button', { name: 'Wouter' });
