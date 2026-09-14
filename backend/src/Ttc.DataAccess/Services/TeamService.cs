@@ -193,10 +193,19 @@ public class TeamService
 
         var clubs = await _context.Clubs.ToArrayAsync();
 
-        var toogPerDay = await _context.Toog
+        var assigned = await _context.Toog
             .Where(x => x.Assigned)
             .Include(x => x.Player)
-            .ToDictionaryAsync(x => x.Date, x => x.Player!.Alias ?? x.Player.FirstName ?? "???");
+            .ToArrayAsync();
+
+        // Geen enkele index dwingt één aanduiding per dag af, dus een dubbele mag de export niet kelderen
+        var toogPerDay = assigned
+            .GroupBy(x => x.Date)
+            .ToDictionary(x => x.Key, x =>
+            {
+                var player = x.First().Player!;
+                return player.Alias ?? player.FirstName ?? "???";
+            });
 
         var excelCreator = TeamsExcelCreator.CreateFormation(teams, matches, players, clubs, toogPerDay);
         return excelCreator.Create();

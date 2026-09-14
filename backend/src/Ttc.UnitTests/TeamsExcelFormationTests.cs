@@ -1,3 +1,4 @@
+using OfficeOpenXml;
 using Ttc.DataAccess.Utilities.Excel;
 using Ttc.DataEntities;
 using Ttc.Model.Matches;
@@ -11,6 +12,8 @@ namespace Ttc.UnitTests;
 /// </summary>
 public class TeamsExcelFormationTests
 {
+    static TeamsExcelFormationTests() => ExcelPackage.License.SetNonCommercialOrganization("TTC Aalst");
+
     private const int DivisionId = 1957;
     private const int TeamAId = 493;
     private const int TeamBId = 494;
@@ -112,5 +115,25 @@ public class TeamsExcelFormationTests
 
         Assert.Equal("Ann", Assert.Single(SheetFor(sheets, "A").Matches).Toog);
         Assert.Null(Assert.Single(SheetFor(sheets, "B").Matches).Toog);
+    }
+
+    [Fact]
+    public void Create_PutsBlockAndToogInTheTwoColumnsAfterThePlayers()
+    {
+        var homeMatch = NewMatch(1, TeamAId, null);
+        homeMatch.Date = homeMatch.Date.AddHours(Constants.DefaultStartHour);
+        homeMatch.Block = PlayerMatchStatus.Captain;
+        homeMatch.Players.Add(new MatchPlayerEntity { PlayerId = AnnA, Name = "Ann", Home = true, Status = PlayerMatchStatus.Captain });
+        List<MatchEntity> matches = [homeMatch];
+        var toogPerDay = new Dictionary<DateTime, string> { [homeMatch.Date.Date] = "Bert" };
+
+        byte[] excel = TeamsExcelCreator.CreateFormation(NewTeams(), matches, Players, Clubs, toogPerDay).Create();
+
+        using var package = new ExcelPackage(new MemoryStream(excel));
+        var sheet = package.Workbook.Worksheets["Sporta A"];
+        Assert.Equal(ExcelExportResources.MatchBlock, sheet.Cells[1, 8].Text);
+        Assert.Equal(ExcelExportResources.MatchToog, sheet.Cells[1, 9].Text);
+        Assert.Equal(ExcelExportResources.MatchBlockCaptainName, sheet.Cells[2, 8].Text);
+        Assert.Equal("Bert", sheet.Cells[2, 9].Text);
     }
 }
