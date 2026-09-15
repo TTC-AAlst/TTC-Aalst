@@ -265,3 +265,38 @@
   padding-top: -20px;
   padding-bottom: 5px;
 }
+
+.set-scores-cell {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.set-scores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 3px;
+}
+
+.set-score {
+  // Tabular figures keep the chips from jittering between 9-11 and 11-9
+  font-variant-numeric: tabular-nums;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.set-score-won {
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+  color: #0f5132;
+}
+
+.set-score-lost {
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+}

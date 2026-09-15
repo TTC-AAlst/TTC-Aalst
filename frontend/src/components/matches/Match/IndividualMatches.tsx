@@ -13,6 +13,7 @@ import { t } from '../../../locales';
 import storeUtil from '../../../storeUtil';
 import { useViewport } from '../../../utils/hooks/useViewport';
 import { PreviousEncounters, PreviousEncountersButtonModal } from './PreviousEncounters';
+import { SetScores } from './SetScores';
 import { useTtcSelector } from '../../../utils/hooks/storeHooks';
 import { RootState } from '../../../store';
 
@@ -36,7 +37,7 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
           <th colSpan={2}>
             {t('match.individual.matchTitle')} {match.frenoyMatchId}
           </th>
-          <th className="d-none d-sm-table-cell">{t('match.individual.setsTitle')}</th>
+          <th>{t('match.individual.setsTitle')}</th>
           <th>{t('match.individual.resultTitle')}</th>
           <th>&nbsp;</th>
         </tr>
@@ -74,11 +75,16 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
                     {t('match.double')}
                   </td>
                 )}
-                <td key="3" className="d-none d-sm-table-cell">
-                  {game.homeSets}-{game.outSets}
-                </td>
-                <td key="4">
-                  {matchResult.home}-{matchResult.out}
+                <td key="3" colSpan={2}>
+                  <div className="set-scores-cell">
+                    <span>
+                      {game.homeSets}-{game.outSets}
+                    </span>
+                    <span>
+                      {matchResult.home}-{matchResult.out}
+                    </span>
+                  </div>
+                  <SetScores sets={game.setScores} />
                 </td>
                 <td key="5">{game.isDoubles ? <span>&nbsp;</span> : <PreviousEncountersButton matchId={match.id} players={game} />}</td>
               </tr>
@@ -179,11 +185,16 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
                     {t('match.double')}
                   </td>
                 )}
-                <td key="3">
-                  {game.homeSets}-{game.outSets}
-                </td>
-                <td key="4">
-                  {matchResult.home}-{matchResult.out}
+                <td key="3" colSpan={2}>
+                  <div className="set-scores-cell">
+                    <span>
+                      {game.homeSets}-{game.outSets}
+                    </span>
+                    <span>
+                      {matchResult.home}-{matchResult.out}
+                    </span>
+                  </div>
+                  <SetScores sets={game.setScores} />
                 </td>
               </tr>
             );

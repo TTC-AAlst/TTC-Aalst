@@ -322,6 +322,7 @@ internal static class EntityMapper
             HomePlayerSets = src.HomePlayerSets,
             OutPlayerSets = src.AwayPlayerSets,
             Outcome = src.WalkOver == WalkOver.None ? MatchOutcome.NotYetPlayed : MatchOutcome.WalkOver,
+            Scores = src.Scores,
         };
     }
 

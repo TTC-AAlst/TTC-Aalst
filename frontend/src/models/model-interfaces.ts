@@ -1,6 +1,7 @@
 import { Dayjs } from 'dayjs';
 import { UserRoles } from './UserModel';
 import { PlayerRanking } from './utils/rankingSorter';
+import { ISetScore } from './utils/setScores';
 
 export interface ITeamPlayerStats {
   ply: IPlayer;
@@ -164,6 +165,8 @@ export interface IMatchGame {
   homePlayerSets: number;
   outPlayerSets: number;
   outcome: MatchGameOutcome;
+  /** Raw Frenoy set scores; VTTL only, see parseSetScores */
+  scores?: string;
 }
 
 /** Previous encounters of players */
@@ -191,6 +194,7 @@ export interface IGetGameMatches {
   out: IMatchPlayer;
   homeSets: number;
   outSets: number;
+  setScores: ISetScore[];
   outcome: MatchGameOutcome;
 
   isDoubles: boolean;

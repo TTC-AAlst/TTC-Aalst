@@ -7,6 +7,7 @@ import MatchVs from '../../matches/Match/MatchVs';
 import { MatchDate } from '../../matches/controls/MatchDate';
 import { OpponentPlayerLabel } from '../../matches/Match/OpponentPlayer';
 import { ViewMatchDetailsButton } from '../../matches/controls/ViewMatchDetailsButton';
+import { SetScores } from '../../matches/Match/SetScores';
 import { IPlayer } from '../../../models/model-interfaces';
 import { useTtcSelector } from '../../../utils/hooks/storeHooks';
 import { selectPlayerMatches } from '../../../reducers/selectors/selectPlayerMatches';
@@ -110,6 +111,7 @@ export const PlayerMatchHistory = ({ player }: PlayerMatchHistoryProps) => {
                     </td>
                     <td>
                       {match.isHomeMatch ? game.homeSets : game.outSets}-{match.isHomeMatch ? game.outSets : game.homeSets}
+                      <SetScores sets={game.setScores} flip={!match.isHomeMatch} />
                     </td>
                   </tr>
                 );
