@@ -24,7 +24,7 @@ export const DivisionPointsRace = ({ divisionId, ownClubId, ownTeamCodes, select
       series={toDivisionSeries(weeks, ownClubId, ownTeamCodes)}
       selectedKey={selectedKey}
       onSelect={onSelect}
-      renderTooltip={(row, series) => <DivisionRaceTooltip row={row} series={series} />}
+      renderTooltip={(row, series, activeKey) => <DivisionRaceTooltip row={row} series={series} activeKey={activeKey} />}
     />
   );
 };

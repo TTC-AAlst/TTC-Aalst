@@ -26,7 +26,7 @@ export function toDivisionSeries(weeks: DivisionRankingWeek[], ownClubId: number
       };
       byTeam.set(key, series);
     }
-    series.points.push({ weekDate: w.weekDate, value: w.points, meta: { points: w.points } });
+    series.points.push({ weekDate: w.weekDate, value: w.points, meta: { position: w.position, points: w.points } });
   });
 
   const series = [...byTeam.values()];

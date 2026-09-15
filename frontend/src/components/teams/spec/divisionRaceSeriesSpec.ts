@@ -45,7 +45,7 @@ describe('toDivisionSeries', () => {
   it('plots points against the monday of the week', () => {
     const series = toDivisionSeries([week(2, 'A', OwnClubId, 6)], OwnClubId, ['A']);
 
-    expect(series[0]!.points).toEqual([{ weekDate: '2026-09-21T00:00:00', value: 6, meta: { points: 6 } }]);
+    expect(series[0]!.points).toEqual([{ weekDate: '2026-09-21T00:00:00', value: 6, meta: { position: 1, points: 6 } }]);
   });
 
   it('orders the points chronologically', () => {

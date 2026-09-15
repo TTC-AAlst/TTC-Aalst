@@ -36,7 +36,7 @@ export const DivisionRanking = ({ team }: DivisionRankingProps) => {
         selectedKey={selectedKey}
         onSelect={setSelectedKey}
       />
-      <Table size="sm" hover>
+      <Table className="division-ranking" size="sm" hover>
         <thead>
           <tr>
             <th>{t('teamCalendar.position')}</th>

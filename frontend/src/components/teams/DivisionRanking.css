@@ -2,10 +2,19 @@
   cursor: pointer;
 }
 
+/* Bootstrap paints its row highlight with an inset box-shadow, so the selected marker
+   has to be a border: a second box-shadow would blank the highlight on that one cell.
+   Every row carries the transparent border so selecting one does not shift the column. */
+.division-ranking th:first-child,
+.division-ranking td:first-child {
+  border-left: 3px solid transparent;
+  padding-left: 10px;
+}
+
 .division-ranking-selected td {
   font-weight: 700;
 }
 
 .division-ranking-selected td:first-child {
-  box-shadow: inset 3px 0 0 #2b2b28;
+  border-left-color: #2b2b28;
 }
