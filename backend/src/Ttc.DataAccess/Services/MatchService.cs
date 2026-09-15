@@ -412,15 +412,36 @@ public class MatchService
         var frenoySync = new FrenoyMatchesApi(_context, team.Competition);
         await frenoySync.SyncTeamMatches(team);
 
+        await SyncDivisionRankingHistory(team.Competition, team.FrenoyDivisionId, refetchRecent: true);
+    }
+
+    /// <summary>
+    /// Backfills whatever weeks are missing. <paramref name="refetchRecent"/> additionally rechecks
+    /// the latest stored weeks, which only earns its federation calls when a result just moved.
+    /// </summary>
+    public async Task SyncDivisionRankingHistory(Competition competition, int frenoyDivisionId, bool refetchRecent)
+    {
         var currentWeek = await _context.Matches
-            .Where(x => x.FrenoyDivisionId == team.FrenoyDivisionId
+            .Where(x => x.FrenoyDivisionId == frenoyDivisionId
                         && x.FrenoySeason == _context.CurrentFrenoySeason
                         && x.Date <= DateTime.Now)
             .Select(x => (int?)x.Week)
             .MaxAsync() ?? 0;
 
-        var teamsApi = new FrenoyTeamsApi(_context, team.Competition);
-        await teamsApi.SyncDivisionRankingHistory(team.FrenoyDivisionId, currentWeek);
+        var teamsApi = new FrenoyTeamsApi(_context, competition);
+        await teamsApi.SyncDivisionRankingHistory(frenoyDivisionId, currentWeek, refetchRecent);
+    }
+
+    /// <summary>Every division one of our teams plays in this season.</summary>
+    public async Task<ICollection<(Competition Competition, int FrenoyDivisionId)>> GetOwnDivisions()
+    {
+        var divisions = await _context.Teams
+            .Where(x => x.Year == _context.CurrentSeason)
+            .Select(x => new { x.Competition, x.FrenoyDivisionId })
+            .Distinct()
+            .ToListAsync();
+
+        return divisions.Select(x => (x.Competition, x.FrenoyDivisionId)).ToList();
     }
 
     private async Task<bool> FrenoyMatchSyncCore(int matchId, bool forceSync)

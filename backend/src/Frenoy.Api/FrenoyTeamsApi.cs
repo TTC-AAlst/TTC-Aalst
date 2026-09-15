@@ -51,7 +51,7 @@ public class FrenoyTeamsApi : FrenoyApiBase
         }
     }
 
-    public async Task SyncDivisionRankingHistory(int divisionId, int currentWeek)
+    public async Task SyncDivisionRankingHistory(int divisionId, int currentWeek, bool refetchRecent)
     {
         var stored = await _db.DivisionRankingWeeks
             .Where(x => x.Year == _settings.Year
@@ -61,7 +61,7 @@ public class FrenoyTeamsApi : FrenoyApiBase
             .Distinct()
             .ToListAsync();
 
-        foreach (var week in RankingWeekPlanner.WeeksToFetch(stored, currentWeek))
+        foreach (var week in RankingWeekPlanner.WeeksToFetch(stored, currentWeek, refetchRecent))
         {
             var response = await _frenoy.GetDivisionRankingAsync(new GetDivisionRankingRequest1
             {
