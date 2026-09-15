@@ -112,10 +112,19 @@ for it. Hand-rolling was tried first and abandoned — axes, tick layout, label
 collision and hover hit-testing are most of what a charting library is.
 
 ```ts
-type RacePoint = { weekDate: string; value: number; note: string };
-type RaceSeries = { key: string; label: string; highlighted: boolean; color?: string; points: RacePoint[] };
-type RaceChartProps = { series: RaceSeries[]; yInverted?: boolean };
+type RacePoint<T> = { weekDate: string; value: number; meta: T };
+type RaceSeries<T> = { key: string; label: string; highlighted: boolean; color?: string; points: RacePoint<T>[] };
+type RaceChartProps<T> = {
+  series: RaceSeries<T>[];
+  yInverted?: boolean;
+  selectedKey?: string;
+  onSelect?: (key: string | undefined) => void;
+  renderTooltip: (row: ChartRow<T>, series: RaceSeries<T>[], activeKey: string | undefined) => ReactNode;
+};
 ```
+
+The point payload is opaque to the chart: each consumer decides what its tooltip
+needs and renders it.
 
 ### The x axis is a date, not a week number
 
@@ -139,8 +148,21 @@ other line is muted grey.
 | Dashboard positions | the competition | end-of-line label per team |
 
 Nine of our teams cannot get nine distinguishable hues, so the dashboard encodes the
-competition in colour and the team in its label. Hovering any line emphasises it and
-dims the others.
+competition in colour and the team in its label.
+
+### Picking a line
+
+Hovering or selecting a line emphasises it, labels its end and dims the rest. A 1.5px
+stroke is essentially unhittable, so every series is shadowed by a 14px transparent
+twin that carries the mouse handlers.
+
+Selection is shared, not owned by the chart: clicking a row in the division ranking
+table picks that line, and clicking a line picks its row. Both sides key off
+`divisionSeriesKey(clubId, teamCode)`, because every division has an A team.
+
+Nothing is highlighted by default on the dashboard. Every line there is ours, so
+emphasising all of them emphasises none, and the field flashed as the mouse crossed
+the gap between lines.
 
 ### Consumers
 
@@ -155,7 +177,7 @@ different divisions and points across divisions are not comparable.
 
 Position is plotted raw (1..largest division size) rather than normalised, because
 "3rd" is the number people actually say. The cost is that last-of-10 plots above
-last-of-12; the tooltip carries the context as `3e van 12`.
+last-of-12; the tooltip carries the context as a `3 / 12` badge.
 
 ## Decisions
 
@@ -163,8 +185,13 @@ last-of-12; the tooltip carries the context as `3e van 12`.
   why VTTL shows nothing until after 2026-09-18.
 - **Legend:** twelve teams would swamp the division chart. Direct end-of-line labels
   for coloured series only; muted teams are identified in the tooltip.
-- **Tooltip:** the whole standing of that week, best first, so a line can be read
-  against the ones around it.
+- **A tooltip per chart, because they answer different questions.** The division race
+  lists the whole standing of that week, leader first, so a line can be read against
+  the ones around it. The dashboard shows only the hovered team — position badge,
+  division, playing week, won/drawn/lost — since ranking teams from different
+  divisions against each other means nothing.
+- **No active dots.** Recharts' default drops a dot on every line at the hovered
+  week, which reads as noise on a twelve-line chart.
 - **Two highlighted lines** on Sporta division 1957, where both A and B play.
 
 ## Testing
