@@ -2,19 +2,46 @@ import { useState } from 'react';
 import { createSelector } from '@reduxjs/toolkit';
 import dayjs from 'dayjs';
 import cn from 'classnames';
+import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import { matchOutcome } from '../../../models/MatchModel';
 import { OpponentPlayerLabel } from './OpponentPlayer';
+import { Icon } from '../../controls/Icons/Icon';
 import { TrophyIcon } from '../../controls/Icons/TrophyIcon';
 import { PlayerLink } from '../../players/controls/PlayerLink';
-import { FrenoyLink } from '../../controls/Buttons/FrenoyButton';
+import { FrenoyLink, FrenoyWeekLink } from '../../controls/Buttons/FrenoyButton';
 import { IMatch, Competition, IGetGameMatches, IMatchPlayer } from '../../../models/model-interfaces';
 import { t } from '../../../locales';
 import storeUtil from '../../../storeUtil';
 import { useViewport } from '../../../utils/hooks/useViewport';
 import { PreviousEncounters, PreviousEncountersButtonModal } from './PreviousEncounters';
+import { SetScores } from './SetScores';
 import { useTtcSelector } from '../../../utils/hooks/storeHooks';
 import { RootState } from '../../../store';
+
+type SetScoresToggleProps = {
+  games: IGetGameMatches[];
+  shown: boolean;
+  onToggle: () => void;
+};
+
+const SetScoresToggle = ({ games, shown, onToggle }: SetScoresToggleProps) => {
+  if (!games.some(game => game.setScores.length)) {
+    return null;
+  }
+  return (
+    <Button
+      variant="outline-secondary"
+      size="sm"
+      className="set-scores-toggle"
+      onClick={onToggle}
+      aria-expanded={shown}
+      aria-label={t('match.individual.setDetails')}
+    >
+      <Icon fa={shown ? 'fa fa-chevron-up' : 'fa fa-chevron-down'} translate tooltip="match.individual.setDetails" />
+    </Button>
+  );
+};
 
 type IndividualMatchesProps = {
   match: IMatch;
@@ -23,67 +50,75 @@ type IndividualMatchesProps = {
 
 export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps) => {
   const [pinnedPlayerId, setPinnedPlayerId] = useState<number | null>(ownPlayerId);
+  const [showSetScores, setShowSetScores] = useState(false);
   const matchResult = { home: 0, out: 0 };
 
   if (match.games.length === 0) {
     return <PreviousEncounters match={match} />;
   }
 
+  const games = match.getGameMatches().sort((a, b) => a.matchNumber - b.matchNumber);
+
   return (
     <Table size="sm" striped className="match-card-tab-table">
       <thead>
         <tr>
           <th colSpan={2}>
-            {t('match.individual.matchTitle')} {match.frenoyMatchId}
+            {t('match.individual.matchTitle')} <FrenoyWeekLink match={match} />
           </th>
-          <th className="d-none d-sm-table-cell">{t('match.individual.setsTitle')}</th>
+          <th>
+            {t('match.individual.setsTitle')}
+            <SetScoresToggle games={games} shown={showSetScores} onToggle={() => setShowSetScores(!showSetScores)} />
+          </th>
           <th>{t('match.individual.resultTitle')}</th>
           <th>&nbsp;</th>
         </tr>
       </thead>
       <tbody>
-        {match
-          .getGameMatches()
-          .sort((a, b) => a.matchNumber - b.matchNumber)
-          .map(game => {
-            matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
-            const matchWonTrophy = game.outcome === matchOutcome.Won ? <TrophyIcon style={{ marginRight: 6 }} /> : null;
-            return (
-              <tr
-                key={game.matchNumber}
-                className={cn({
-                  success: game.ownPlayer.playerId === pinnedPlayerId && game.outcome === matchOutcome.Won,
-                  danger: game.ownPlayer.playerId === pinnedPlayerId && game.outcome !== matchOutcome.Won,
-                  accentuate: game.ownPlayer.playerId === ownPlayerId,
-                })}
-                onClick={() => setPinnedPlayerId(pinnedPlayerId === game.ownPlayer.playerId ? null : game.ownPlayer.playerId)}
-              >
-                {!game.isDoubles ? (
-                  [
-                    <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="1">
-                      {matchWonTrophy}
-                      <PlayerDesc player={game.home} competition={match.competition} />
-                    </td>,
-                    <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="2">
-                      <PlayerDesc player={game.out} competition={match.competition} />
-                    </td>,
-                  ]
-                ) : (
-                  <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="2" colSpan={2}>
+        {games.map(game => {
+          matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
+          const matchWonTrophy = game.outcome === matchOutcome.Won ? <TrophyIcon style={{ marginRight: 6 }} /> : null;
+          return (
+            <tr
+              key={game.matchNumber}
+              className={cn({
+                success: game.ownPlayer.playerId === pinnedPlayerId && game.outcome === matchOutcome.Won,
+                danger: game.ownPlayer.playerId === pinnedPlayerId && game.outcome !== matchOutcome.Won,
+                accentuate: game.ownPlayer.playerId === ownPlayerId,
+              })}
+              onClick={() => setPinnedPlayerId(pinnedPlayerId === game.ownPlayer.playerId ? null : game.ownPlayer.playerId)}
+            >
+              {!game.isDoubles ? (
+                [
+                  <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="1">
                     {matchWonTrophy}
-                    {t('match.double')}
-                  </td>
-                )}
-                <td key="3" className="d-none d-sm-table-cell">
-                  {game.homeSets}-{game.outSets}
+                    <PlayerDesc player={game.home} competition={match.competition} />
+                  </td>,
+                  <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="2">
+                    <PlayerDesc player={game.out} competition={match.competition} />
+                  </td>,
+                ]
+              ) : (
+                <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="2" colSpan={2}>
+                  {matchWonTrophy}
+                  {t('match.double')}
                 </td>
-                <td key="4">
-                  {matchResult.home}-{matchResult.out}
-                </td>
-                <td key="5">{game.isDoubles ? <span>&nbsp;</span> : <PreviousEncountersButton matchId={match.id} players={game} />}</td>
-              </tr>
-            );
-          })}
+              )}
+              <td key="3" colSpan={2}>
+                <div className="set-scores-cell">
+                  <span>
+                    {game.homeSets}-{game.outSets}
+                  </span>
+                  <span>
+                    {matchResult.home}-{matchResult.out}
+                  </span>
+                </div>
+                {showSetScores && <SetScores sets={game.setScores} />}
+              </td>
+              <td key="5">{game.isDoubles ? <span>&nbsp;</span> : <PreviousEncountersButton matchId={match.id} players={game} />}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </Table>
   );
@@ -133,61 +168,69 @@ const PlayerDesc = ({ player, competition }: PlayerDescProps) => {
 
 export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
   const [pinnedPlayerIndex, setPinnedPlayerIndex] = useState(0);
+  const [showSetScores, setShowSetScores] = useState(false);
   const matchResult = { home: 0, out: 0 };
+
+  const games = match.getGameMatches().sort((a, b) => a.matchNumber - b.matchNumber);
 
   return (
     <Table striped size="sm" className="match-card-tab-table">
       <thead>
         <tr>
           <th colSpan={2}>{t('match.report.title')}</th>
-          <th>{t('match.individual.setsTitle')}</th>
+          <th>
+            {t('match.individual.setsTitle')}
+            <SetScoresToggle games={games} shown={showSetScores} onToggle={() => setShowSetScores(!showSetScores)} />
+          </th>
           <th>
             <span className="d-none d-sm-inline">{t('match.individual.resultTitle')}</span>
           </th>
         </tr>
       </thead>
       <tbody>
-        {match
-          .getGameMatches()
-          .sort((a, b) => a.matchNumber - b.matchNumber)
-          .map(game => {
-            matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
-            const highlightRow = game.home?.uniqueIndex === pinnedPlayerIndex || game.out?.uniqueIndex === pinnedPlayerIndex;
-            return (
-              <tr key={game.matchNumber} className={cn({ success: highlightRow })}>
-                {!game.isDoubles ? (
-                  [
-                    <td key="1">
-                      <ReadonlyMatchPlayerLabel
-                        competition={match.competition}
-                        game={game}
-                        homePlayer
-                        onClick={() => setPinnedPlayerIndex(game.home.uniqueIndex)}
-                      />
-                    </td>,
-                    <td key="2">
-                      <ReadonlyMatchPlayerLabel
-                        competition={match.competition}
-                        game={game}
-                        homePlayer={false}
-                        onClick={() => setPinnedPlayerIndex(game.out.uniqueIndex)}
-                      />
-                    </td>,
-                  ]
-                ) : (
-                  <td key="2" colSpan={2}>
-                    {t('match.double')}
-                  </td>
-                )}
-                <td key="3">
-                  {game.homeSets}-{game.outSets}
+        {games.map(game => {
+          matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
+          const highlightRow = game.home?.uniqueIndex === pinnedPlayerIndex || game.out?.uniqueIndex === pinnedPlayerIndex;
+          return (
+            <tr key={game.matchNumber} className={cn({ success: highlightRow })}>
+              {!game.isDoubles ? (
+                [
+                  <td key="1">
+                    <ReadonlyMatchPlayerLabel
+                      competition={match.competition}
+                      game={game}
+                      homePlayer
+                      onClick={() => setPinnedPlayerIndex(game.home.uniqueIndex)}
+                    />
+                  </td>,
+                  <td key="2">
+                    <ReadonlyMatchPlayerLabel
+                      competition={match.competition}
+                      game={game}
+                      homePlayer={false}
+                      onClick={() => setPinnedPlayerIndex(game.out.uniqueIndex)}
+                    />
+                  </td>,
+                ]
+              ) : (
+                <td key="2" colSpan={2}>
+                  {t('match.double')}
                 </td>
-                <td key="4">
-                  {matchResult.home}-{matchResult.out}
-                </td>
-              </tr>
-            );
-          })}
+              )}
+              <td key="3" colSpan={2}>
+                <div className="set-scores-cell">
+                  <span>
+                    {game.homeSets}-{game.outSets}
+                  </span>
+                  <span>
+                    {matchResult.home}-{matchResult.out}
+                  </span>
+                </div>
+                {showSetScores && <SetScores sets={game.setScores} />}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </Table>
   );
