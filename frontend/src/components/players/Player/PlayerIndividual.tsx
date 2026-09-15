@@ -64,7 +64,7 @@ export const PlayerIndividual = ({ player, competition }: PlayerIndividualProps)
                 <WonLostLabel won={won} lost={lost} />
               </td>
               <td>
-                <PercentageLabel won={won} lost={lost} />
+                <PercentageLabel won={won} lost={lost} heat />
               </td>
               <td>{belles ? <WonLostLabel won={belles.won} lost={belles.lost} /> : null}</td>
             </tr>
@@ -78,7 +78,7 @@ export const PlayerIndividual = ({ player, competition }: PlayerIndividualProps)
             <WonLostLabel won={total.won} lost={total.lost} />
           </td>
           <td>
-            <PercentageLabel won={total.won} lost={total.lost} decimals={2} />
+            <PercentageLabel won={total.won} lost={total.lost} decimals={2} heat />
           </td>
           <td>
             <WonLostLabel won={total.bellesWon} lost={total.bellesLost} />
