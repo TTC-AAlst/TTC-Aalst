@@ -1,8 +1,7 @@
 import { LineChart } from '../controls/charts/LineChart';
 import { Series } from '../controls/charts/chartScales';
 import { useTtcSelector } from '../../utils/hooks/storeHooks';
-
-const MinimumWeeksToPlot = 2;
+import { hasEnoughWeeks } from '../../reducers/rankingHistoryReducer';
 
 type DivisionPointsRaceProps = {
   divisionId: number;
@@ -13,8 +12,7 @@ type DivisionPointsRaceProps = {
 export const DivisionPointsRace = ({ divisionId, ownClubId, ownTeamCodes }: DivisionPointsRaceProps) => {
   const weeks = useTtcSelector(state => state.rankingHistory.divisions[divisionId]) ?? [];
 
-  const distinctWeeks = new Set(weeks.map(w => w.week));
-  if (distinctWeeks.size < MinimumWeeksToPlot) {
+  if (!hasEnoughWeeks(weeks)) {
     return null;
   }
 

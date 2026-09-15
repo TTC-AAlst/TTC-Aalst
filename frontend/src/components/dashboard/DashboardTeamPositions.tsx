@@ -1,15 +1,13 @@
 import { LineChart } from '../controls/charts/LineChart';
 import { Series } from '../controls/charts/chartScales';
 import { useTtcSelector, selectTeams } from '../../utils/hooks/storeHooks';
-
-const MinimumWeeksToPlot = 2;
+import { hasEnoughWeeks } from '../../reducers/rankingHistoryReducer';
 
 export const DashboardTeamPositions = () => {
   const positions = useTtcSelector(state => state.rankingHistory.positions);
   const teams = useTtcSelector(selectTeams);
 
-  const distinctWeeks = new Set(positions.map(p => p.week));
-  if (distinctWeeks.size < MinimumWeeksToPlot) {
+  if (!hasEnoughWeeks(positions)) {
     return null;
   }
 

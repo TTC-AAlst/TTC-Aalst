@@ -11,13 +11,14 @@ import { browseTo } from '../../routes';
 import { ITeam } from '../../models/model-interfaces';
 import t from '../../locales';
 import { Icon } from '../controls/Icons/Icon';
-import { loadTeamPositions } from '../../reducers/rankingHistoryReducer';
+import { loadTeamPositions, hasEnoughWeeks } from '../../reducers/rankingHistoryReducer';
 import { DashboardTeamPositions } from './DashboardTeamPositions';
 
 export const DashboardGlobalTeamStats = () => {
   const dispatch = useTtcDispatch();
   const teams = useTtcSelector(selectTeams);
   const userTeams = useTtcSelector(selectUserTeams);
+  const positions = useTtcSelector(state => state.rankingHistory.positions);
   const viewport = useViewport();
   const isLargeDevice = viewport.width >= 1200;
   const isSmallDevice = viewport.width < 576;
@@ -111,43 +112,51 @@ export const DashboardGlobalTeamStats = () => {
   let smallGridTemplateColumns = isLargeDevice ? '1fr 1fr 1fr' : '1fr 1fr';
   if (isSmallDevice) smallGridTemplateColumns = '1fr';
 
+  const cards = (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: isLargeDevice ? '1fr 1fr' : '1fr', gap: 8, marginTop: 8 }}>
+        {primaryTeams.map(team => renderPrimaryTeamStats(team))}
+      </div>
+
+      {otherTeams.length > 0 &&
+        (isSmallDevice && !showOtherTeams ? (
+          <button
+            type="button"
+            onClick={() => setShowOtherTeams(true)}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              backgroundColor: '#f5f5f5',
+              border: '1px solid #ddd',
+              borderRadius: 4,
+              cursor: 'pointer',
+              fontSize: '0.9em',
+              color: '#666',
+            }}
+          >
+            Meer Teams Tonen
+          </button>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: smallGridTemplateColumns, gap: 4 }}>{otherTeams.map(team => renderCompactTeamStats(team))}</div>
+        ))}
+    </>
+  );
+
   return (
     <div style={{ marginBottom: 20 }}>
       <Strike text={t('dashboard.globalTeamStats')} style={{ marginBottom: 6 }} />
-      <Tabs defaultActiveKey="cards">
-        <Tab eventKey="cards" title={t('dashboard.teamStatsCards')}>
-          <div style={{ display: 'grid', gridTemplateColumns: isLargeDevice ? '1fr 1fr' : '1fr', gap: 8, marginTop: 8 }}>
-            {primaryTeams.map(team => renderPrimaryTeamStats(team))}
-          </div>
-
-          {otherTeams.length > 0 &&
-            (isSmallDevice && !showOtherTeams ? (
-              <button
-                type="button"
-                onClick={() => setShowOtherTeams(true)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  backgroundColor: '#f5f5f5',
-                  border: '1px solid #ddd',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: '0.9em',
-                  color: '#666',
-                }}
-              >
-                Meer Teams Tonen
-              </button>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: smallGridTemplateColumns, gap: 4 }}>
-                {otherTeams.map(team => renderCompactTeamStats(team))}
-              </div>
-            ))}
-        </Tab>
-        <Tab eventKey="graph" title={t('dashboard.teamStatsGraph')}>
-          <DashboardTeamPositions />
-        </Tab>
-      </Tabs>
+      {hasEnoughWeeks(positions) ? (
+        <Tabs defaultActiveKey="cards">
+          <Tab eventKey="cards" title={t('dashboard.teamStatsCards')}>
+            {cards}
+          </Tab>
+          <Tab eventKey="graph" title={t('dashboard.teamStatsGraph')}>
+            <DashboardTeamPositions />
+          </Tab>
+        </Tabs>
+      ) : (
+        cards
+      )}
     </div>
   );
 };

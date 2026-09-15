@@ -19,6 +19,11 @@ export type TeamPositionWeek = {
   teamsInDivision: number;
 };
 
+/** A single standing is a dot, not a race: both charts stay hidden until a second week lands. */
+export function hasEnoughWeeks(weeks: { week: number }[]): boolean {
+  return new Set(weeks.map(w => w.week)).size >= 2;
+}
+
 type RankingHistoryState = {
   divisions: Record<number, DivisionRankingWeek[]>;
   positions: TeamPositionWeek[];
