@@ -16,7 +16,7 @@ vi.mock('../../../../storeUtil', () => ({
     getTeam: vi.fn(),
     getTeams: vi.fn().mockReturnValue([]),
     getClub: vi.fn(),
-    getPlayer: vi.fn(() => player),
+    getPlayer: vi.fn((playerId: number) => ({ id: playerId })),
     getMatch: vi.fn(),
     getMatches: vi.fn().mockReturnValue([]),
     matches: { getAllMatches: vi.fn().mockReturnValue([]) },
@@ -91,5 +91,61 @@ describe('PlayerIndividual', () => {
     expect(container.querySelector('tbody tr.accentuate')).not.toBeNull();
     expect(container.querySelectorAll('thead th')).toHaveLength(3);
     expect(container.querySelector('tfoot')).not.toBeNull();
+  });
+});
+
+const marek = new PlayerModel({
+  id: 344,
+  firstName: 'Marek',
+  lastName: 'Czyrnek',
+  sporta: { competition: 'Sporta', ranking: 'C2', uniqueIndex: 53060 } as IPlayerCompetition,
+});
+
+const derbyPlayer = (playerId: number, uniqueIndex: number, ranking: string, home: boolean) => ({
+  playerId,
+  uniqueIndex,
+  ranking,
+  home,
+  name: `Ply${playerId}`,
+  position: 1,
+  status: 'Major',
+});
+
+const derbyGame = (homePlayerUniqueIndex: number, outPlayerSets: number, matchNumber: number) => ({
+  matchNumber,
+  homePlayerUniqueIndex,
+  outPlayerUniqueIndex: 53060,
+  homePlayerSets: 3,
+  outPlayerSets,
+  outcome: 'Won',
+});
+
+// Sporta A 10 - 0 Sporta B: stored once, from Sporta A's side
+const derby = {
+  id: 77,
+  competition: 'Sporta',
+  isSyncedWithFrenoy: true,
+  date: '2026-01-10T20:00:00',
+  teamId: 493,
+  opponentTeamId: 494,
+  isHomeMatch: true,
+  opponent: { clubId: 1, teamCode: 'B' },
+  score: { home: 10, out: 0 },
+  scoreType: 'Won',
+  comments: [],
+  players: [derbyPlayer(20, 10630, 'C0', true), derbyPlayer(67, 9339, 'A', true), derbyPlayer(75, 7562, 'B6', true), derbyPlayer(344, 53060, 'C2', false)],
+  games: [derbyGame(10630, 2, 1), derbyGame(9339, 0, 6), derbyGame(7562, 2, 9)],
+};
+
+describe('PlayerIndividual of a derby loser', () => {
+  it('counts the games he played for the other own team', () => {
+    const { container } = renderWithProviders(<PlayerIndividual player={marek} competition="Sporta" />, {
+      preloadedState: { matches: [derby] as never, teams: [{ id: 493, teamCode: 'A', competition: 'Sporta' }] as never },
+    });
+
+    const footer = container.querySelectorAll('tfoot tr td');
+    expect(footer[0]!.textContent).toBe('3');
+    expect(footer[2]!.textContent).toBe('0%');
+    expect(Array.from(container.querySelectorAll('tbody tr td:first-child')).map(td => td.textContent)).toEqual(['A', 'B6', 'C0', 'C2']);
   });
 });
