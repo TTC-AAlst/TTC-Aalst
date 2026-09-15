@@ -345,7 +345,7 @@ const getCardBorder = (userPlays: boolean, isToday: boolean) => {
   return '1px solid #e0e0e0';
 };
 
-const MatchRow = ({ match, isPast, isToday, userId }: MatchRowProps) => {
+export const MatchRow = ({ match, isPast, isToday, userId }: MatchRowProps) => {
   const team = match.getTeam();
   const thriller = team.getThriller(match);
   const hasScore = match.score && (match.score.home !== 0 || match.score.out !== 0);
@@ -362,8 +362,14 @@ const MatchRow = ({ match, isPast, isToday, userId }: MatchRowProps) => {
   const opponentRanking = team.getDivisionRanking(match.opponent);
   const opponentRankingPos = !opponentRanking.empty ? opponentRanking.position : null;
 
-  const ownTeamTitle = team.renderOwnTeamTitle();
-  const opponentTitle = match.renderOpponentTitle();
+  const ownRow = { key: 'us', position: ownRankingPos, to: browseTo.getTeam(team), title: team.renderOwnTeamTitle() };
+  const opponentRow = {
+    key: 'them',
+    position: opponentRankingPos,
+    to: browseTo.getOpponent(match.competition, match.opponent),
+    title: match.renderOpponentTitle(),
+  };
+  const teamRows = match.isHomeMatch ? [ownRow, opponentRow] : [opponentRow, ownRow];
 
   // Formation rankings for future matches
   const showFormation = !isPast && !hasScore && formation.length > 0;
@@ -453,20 +459,14 @@ const MatchRow = ({ match, isPast, isToday, userId }: MatchRowProps) => {
         >
           {/* Teams */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Own team row */}
-            <div style={{ fontWeight: 600, marginBottom: 2 }}>
-              {ownRankingPos && <small style={{ color: '#888', fontWeight: 400 }}>{ownRankingPos}. </small>}
-              <Link to={browseTo.getTeam(team)} className="link-hover-underline">
-                {ownTeamTitle}
-              </Link>
-            </div>
-            {/* Opponent row */}
-            <div style={{ fontWeight: 600 }}>
-              {opponentRankingPos && <small style={{ color: '#888', fontWeight: 400 }}>{opponentRankingPos}. </small>}
-              <Link to={browseTo.getOpponent(match.competition, match.opponent)} className="link-hover-underline">
-                {opponentTitle}
-              </Link>
-            </div>
+            {teamRows.map((row, i) => (
+              <div key={row.key} style={{ fontWeight: 600, marginBottom: i === 0 ? 2 : undefined }}>
+                {row.position && <small style={{ color: '#888', fontWeight: 400 }}>{row.position}. </small>}
+                <Link to={row.to} className="link-hover-underline">
+                  {row.title}
+                </Link>
+              </div>
+            ))}
           </div>
 
           {/* Score or time+button */}
