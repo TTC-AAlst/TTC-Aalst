@@ -47,6 +47,22 @@ public class TeamsController
         return await _service.GetTeamRanking(competition, divisionId);
     }
 
+    [HttpGet]
+    [AllowAnonymous]
+    [Route("RankingHistory/{competition}/{divisionId:int}")]
+    public async Task<IEnumerable<DivisionRankingWeek>> RankingHistory(Competition competition, int divisionId)
+    {
+        return await _service.GetRankingHistory(competition, divisionId);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    [Route("RankingHistoryPositions")]
+    public async Task<IEnumerable<TeamPositionWeek>> RankingHistoryPositions()
+    {
+        return await _service.GetOwnTeamPositions();
+    }
+
     [HttpPost]
     [Route("ToggleTeamPlayer")]
     public async Task<Team> ToggleTeamPlayer([FromBody] TeamToggleRequest req)

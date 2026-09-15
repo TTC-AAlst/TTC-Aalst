@@ -23,6 +23,7 @@ public interface ITtcDbContext : IAsyncDisposable
     DbSet<MatchGameEntity> MatchGames { get; set; }
     DbSet<MatchCommentEntity> MatchComments { get; set; }
     DbSet<TournamentEntity> Tournaments { get; set; }
+    DbSet<DivisionRankingWeekEntity> DivisionRankingWeeks { get; set; }
 
     DbSet<ParameterEntity> Parameters { get; set; }
     DbSet<EventEntity> Events { get; set; }

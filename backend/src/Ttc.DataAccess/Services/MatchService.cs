@@ -411,6 +411,16 @@ public class MatchService
         var team = await _context.Teams.SingleAsync(x => x.Id == teamId);
         var frenoySync = new FrenoyMatchesApi(_context, team.Competition);
         await frenoySync.SyncTeamMatches(team);
+
+        var currentWeek = await _context.Matches
+            .Where(x => x.FrenoyDivisionId == team.FrenoyDivisionId
+                        && x.FrenoySeason == _context.CurrentFrenoySeason
+                        && x.Date <= DateTime.Now)
+            .Select(x => (int?)x.Week)
+            .MaxAsync() ?? 0;
+
+        var teamsApi = new FrenoyTeamsApi(_context, team.Competition);
+        await teamsApi.SyncDivisionRankingHistory(team.FrenoyDivisionId, currentWeek);
     }
 
     private async Task<bool> FrenoyMatchSyncCore(int matchId, bool forceSync)
