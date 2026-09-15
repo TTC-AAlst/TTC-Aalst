@@ -21,6 +21,9 @@ const pos = (teamId: number, week: number, position: number, teamsInDivision: nu
   weekDate: `2026-09-${7 + week * 7}T00:00:00`,
   position,
   teamsInDivision,
+  gamesWon: 0,
+  gamesLost: 0,
+  gamesDraw: 0,
 });
 
 const renderPositions = (positions: TeamPositionWeek[]) =>

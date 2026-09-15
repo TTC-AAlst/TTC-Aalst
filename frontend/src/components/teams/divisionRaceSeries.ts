@@ -1,16 +1,19 @@
 import { RaceSeries, SeriesColors } from '../controls/charts/chartRows';
 import { DivisionRankingWeek } from '../../reducers/rankingHistoryReducer';
+import { DivisionRacePoint } from './DivisionRaceTooltip';
+
+/** A row identifies a team only by club *and* code: every division has an A team. */
+export const divisionSeriesKey = (clubId: number, teamCode: string) => `${clubId}-${teamCode}`;
 
 /**
- * Every division has an A team, so a row is ours only when the club matches as well as the team code.
  * Two of ours can share a division (Sporta A and B both play 1957), hence a colour each.
  */
-export function toDivisionSeries(weeks: DivisionRankingWeek[], ownClubId: number, ownTeamCodes: string[]): RaceSeries[] {
-  const byTeam = new Map<string, RaceSeries>();
+export function toDivisionSeries(weeks: DivisionRankingWeek[], ownClubId: number, ownTeamCodes: string[]): RaceSeries<DivisionRacePoint>[] {
+  const byTeam = new Map<string, RaceSeries<DivisionRacePoint>>();
   let ownCount = 0;
 
   weeks.forEach(w => {
-    const key = `${w.clubId}-${w.teamCode}`;
+    const key = divisionSeriesKey(w.clubId, w.teamCode);
     let series = byTeam.get(key);
     if (!series) {
       const isOurs = w.clubId === ownClubId && ownTeamCodes.includes(w.teamCode);
@@ -23,7 +26,7 @@ export function toDivisionSeries(weeks: DivisionRankingWeek[], ownClubId: number
       };
       byTeam.set(key, series);
     }
-    series.points.push({ weekDate: w.weekDate, value: w.points, note: `${w.position}e - ${w.points} punten` });
+    series.points.push({ weekDate: w.weekDate, value: w.points, meta: { points: w.points } });
   });
 
   const series = [...byTeam.values()];

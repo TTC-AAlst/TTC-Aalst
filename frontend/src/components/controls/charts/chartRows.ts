@@ -1,30 +1,33 @@
-export type RacePoint = {
+export type RacePoint<T> = {
   /** ISO date of the monday the matches were played, so competitions on different calendars line up. */
   weekDate: string;
   value: number;
-  note: string;
+  /** Whatever that chart's tooltip needs to render this point. */
+  meta: T;
 };
 
-export type RaceSeries = {
+export type RaceSeries<T> = {
   key: string;
   label: string;
-  /** Always drawn thick, whether or not it is hovered. */
+  /** Drawn thick while nothing else is hovered or selected. */
   highlighted: boolean;
-  /** Colourless series are drawn muted and carry no end label. */
+  /** Colourless series are drawn muted and carry no end label until they are picked. */
   color?: string;
-  points: RacePoint[];
+  points: RacePoint<T>[];
+};
+
+export type ChartRow<T> = {
+  weekDate: number;
+  byKey: Record<string, RacePoint<T>>;
 };
 
 /** Slots 1 and 2 of a colourblind-safe categorical palette, validated against a light surface. */
 export const SeriesColors = ['#2a78d6', '#eb6834'];
 
-export type ChartRow = {
-  weekDate: number;
-  byKey: Record<string, { value: number; note: string }>;
-};
+export const MutedColor = '#9a9a93';
 
-export function toChartRows(series: RaceSeries[]): ChartRow[] {
-  const rows = new Map<number, ChartRow>();
+export function toChartRows<T>(series: RaceSeries<T>[]): ChartRow<T>[] {
+  const rows = new Map<number, ChartRow<T>>();
 
   series.forEach(s =>
     s.points.forEach(p => {
@@ -34,7 +37,7 @@ export function toChartRows(series: RaceSeries[]): ChartRow[] {
         row = { weekDate, byKey: {} };
         rows.set(weekDate, row);
       }
-      row.byKey[s.key] = { value: p.value, note: p.note };
+      row.byKey[s.key] = p;
     }),
   );
 

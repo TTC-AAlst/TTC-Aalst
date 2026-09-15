@@ -1,29 +1,36 @@
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { CartesianGrid, LabelList, Line, LineChart, ResponsiveContainer, Tooltip, TooltipContentProps, XAxis, YAxis } from 'recharts';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import dayjs from 'dayjs';
-import { toChartRows, RaceSeries, ChartRow } from './chartRows';
-import { MutedColor, RaceTooltip } from './RaceTooltip';
+import { toChartRows, ChartRow, MutedColor, RaceSeries } from './chartRows';
 import './RaceChart.css';
 
-type RaceChartProps = {
-  series: RaceSeries[];
+// A 1.5px line is almost unhittable, so every series also gets a fat transparent twin to hover.
+const HitAreaWidth = 14;
+
+export type RaceChartProps<T> = {
+  series: RaceSeries<T>[];
   /** Position charts count down: 1 belongs at the top. */
   yInverted?: boolean;
+  /** Picked elsewhere — the division table rows select into the chart. */
+  selectedKey?: string;
+  onSelect?: (key: string | undefined) => void;
+  renderTooltip: (row: ChartRow<T>, series: RaceSeries<T>[], activeKey: string | undefined) => ReactNode;
 };
 
 type EndLabelProps = { x?: string | number; y?: string | number; index?: number };
 
-export const RaceChart = ({ series, yInverted = false }: RaceChartProps) => {
+export const RaceChart = <T,>({ series, yInverted = false, selectedKey, onSelect, renderTooltip }: RaceChartProps<T>) => {
   const [hovered, setHovered] = useState<string | undefined>(undefined);
   const rows = toChartRows(series);
+  const activeKey = hovered ?? selectedKey;
 
-  const lastIndex = (s: RaceSeries) => rows.findLastIndex(row => row.byKey[s.key]);
-  const isEmphasized = (s: RaceSeries) => (hovered ? hovered === s.key : s.highlighted);
+  const lastIndex = (s: RaceSeries<T>) => rows.findLastIndex(row => row.byKey[s.key]);
+  const isEmphasized = (s: RaceSeries<T>) => (activeKey ? activeKey === s.key : s.highlighted);
 
-  const renderTooltip = ({ active, label }: TooltipContentProps<ValueType, NameType>) => {
+  const tooltip = ({ active, label }: TooltipContentProps<ValueType, NameType>) => {
     const row = rows.find(r => r.weekDate === label);
-    return active && row ? <RaceTooltip row={row} series={series} yInverted={yInverted} /> : null;
+    return active && row ? renderTooltip(row, series, activeKey) : null;
   };
 
   return (
@@ -47,33 +54,31 @@ export const RaceChart = ({ series, yInverted = false }: RaceChartProps) => {
           tick={{ fill: '#6b6b64', fontSize: 12 }}
           stroke="#c9c9c2"
         />
-        <Tooltip content={renderTooltip} />
+        <Tooltip content={tooltip} />
 
         {series.map(s => {
           const emphasized = isEmphasized(s);
-          const end = lastIndex(s);
+          const color = s.color ?? MutedColor;
           return (
             <Line
               key={s.key}
               name={s.label}
               type="linear"
-              dataKey={(row: ChartRow) => row.byKey[s.key]?.value}
+              dataKey={(row: ChartRow<T>) => row.byKey[s.key]?.value}
               connectNulls
               isAnimationActive={false}
-              stroke={s.color ?? MutedColor}
+              stroke={color}
               strokeWidth={emphasized ? 3 : 1.5}
-              strokeOpacity={hovered && !emphasized ? 0.25 : 1}
-              dot={emphasized ? { r: 4, strokeWidth: 0, fill: s.color ?? MutedColor } : false}
-              activeDot={{ r: 5 }}
-              onMouseEnter={() => setHovered(s.key)}
-              onMouseLeave={() => setHovered(undefined)}
+              strokeOpacity={activeKey && !emphasized ? 0.25 : 1}
+              dot={emphasized ? { r: 4, strokeWidth: 0, fill: color } : false}
+              activeDot={false}
             >
-              {s.color && (
+              {(s.color || emphasized) && (
                 <LabelList
-                  dataKey={(row: ChartRow) => row.byKey[s.key]?.value}
+                  dataKey={(row: ChartRow<T>) => row.byKey[s.key]?.value}
                   content={({ x, y, index }: EndLabelProps) =>
-                    index === end ? (
-                      <text className="race-chart-end-label" x={Number(x) + 8} y={Number(y)} dy={4} fill={s.color}>
+                    index === lastIndex(s) ? (
+                      <text className="race-chart-end-label" x={Number(x) + 8} y={Number(y)} dy={4} fill={color}>
                         {s.label}
                       </text>
                     ) : (
@@ -85,6 +90,24 @@ export const RaceChart = ({ series, yInverted = false }: RaceChartProps) => {
             </Line>
           );
         })}
+
+        {series.map(s => (
+          <Line
+            key={`hit-${s.key}`}
+            type="linear"
+            dataKey={(row: ChartRow<T>) => row.byKey[s.key]?.value}
+            connectNulls
+            isAnimationActive={false}
+            stroke="transparent"
+            strokeWidth={HitAreaWidth}
+            dot={false}
+            activeDot={false}
+            className="race-chart-hit-area"
+            onMouseEnter={() => setHovered(s.key)}
+            onMouseLeave={() => setHovered(undefined)}
+            onClick={() => onSelect?.(selectedKey === s.key ? undefined : s.key)}
+          />
+        ))}
       </LineChart>
     </ResponsiveContainer>
   );

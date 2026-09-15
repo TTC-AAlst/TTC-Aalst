@@ -1,4 +1,4 @@
-import { toDivisionSeries } from '../divisionRaceSeries';
+import { toDivisionSeries, divisionSeriesKey } from '../divisionRaceSeries';
 import { DivisionRankingWeek } from '../../../reducers/rankingHistoryReducer';
 import { SeriesColors } from '../../controls/charts/chartRows';
 
@@ -45,12 +45,18 @@ describe('toDivisionSeries', () => {
   it('plots points against the monday of the week', () => {
     const series = toDivisionSeries([week(2, 'A', OwnClubId, 6)], OwnClubId, ['A']);
 
-    expect(series[0]!.points).toEqual([{ weekDate: '2026-09-21T00:00:00', value: 6, note: '1e - 6 punten' }]);
+    expect(series[0]!.points).toEqual([{ weekDate: '2026-09-21T00:00:00', value: 6, meta: { points: 6 } }]);
   });
 
   it('orders the points chronologically', () => {
     const series = toDivisionSeries([week(2, 'A', OwnClubId, 6), week(1, 'A', OwnClubId, 3)], OwnClubId, ['A']);
 
     expect(series[0]!.points.map(p => p.value)).toEqual([3, 6]);
+  });
+
+  it('keys a series the way the ranking table keys its rows, so a click selects the right line', () => {
+    const series = toDivisionSeries([week(1, 'A', OwnClubId, 3), week(1, 'A', 99, 0)], OwnClubId, ['A']);
+
+    expect(series.map(s => s.key)).toEqual([divisionSeriesKey(OwnClubId, 'A'), divisionSeriesKey(99, 'A')]);
   });
 });

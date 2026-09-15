@@ -1,16 +1,12 @@
-import { lazy, Suspense } from 'react';
-import { RaceSeries } from './chartRows';
+import { ComponentType, lazy, Suspense } from 'react';
+import type { RaceChartProps } from './RaceChart';
 
-// Recharts is ~100KB and only two pages chart anything, so it stays out of the eager bundle.
-const RaceChart = lazy(() => import('./RaceChart').then(m => ({ default: m.RaceChart })));
+// Recharts is ~90KB gzipped and only two pages chart anything, so it stays out of the eager bundle.
+// React.lazy cannot carry a generic, so the payload type is erased across the boundary and restored here.
+const Chart = lazy(() => import('./RaceChart').then(m => ({ default: m.RaceChart as ComponentType<RaceChartProps<unknown>> })));
 
-type LazyRaceChartProps = {
-  series: RaceSeries[];
-  yInverted?: boolean;
-};
-
-export const LazyRaceChart = (props: LazyRaceChartProps) => (
+export const LazyRaceChart = <T,>(props: RaceChartProps<T>) => (
   <Suspense fallback={<div className="race-chart-loading" />}>
-    <RaceChart {...props} />
+    <Chart {...(props as RaceChartProps<unknown>)} />
   </Suspense>
 );

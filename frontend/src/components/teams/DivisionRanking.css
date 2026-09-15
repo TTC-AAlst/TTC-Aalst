@@ -1,0 +1,11 @@
+.division-ranking-row {
+  cursor: pointer;
+}
+
+.division-ranking-selected td {
+  font-weight: 700;
+}
+
+.division-ranking-selected td:first-child {
+  box-shadow: inset 3px 0 0 #2b2b28;
+}

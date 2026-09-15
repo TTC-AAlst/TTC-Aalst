@@ -2,9 +2,23 @@
   margin-bottom: 10px;
 }
 
+/* Recharts makes its layers focusable; clicking one otherwise boxes the whole chart in an outline. */
+.race-chart :focus,
+.race-chart :focus-visible {
+  outline: none;
+}
+
+.race-chart-hit-area {
+  cursor: pointer;
+}
+
 .race-chart-end-label {
   font-size: 12px;
   font-weight: 700;
+}
+
+.race-chart-loading {
+  height: 400px;
 }
 
 .race-chart-tooltip {
@@ -33,6 +47,17 @@
   margin-right: 6px;
 }
 
-.race-chart-loading {
-  height: 400px;
+.race-chart-tooltip-badge {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  color: #fff;
+}
+
+.race-chart-tooltip-tally {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 1.1em;
 }

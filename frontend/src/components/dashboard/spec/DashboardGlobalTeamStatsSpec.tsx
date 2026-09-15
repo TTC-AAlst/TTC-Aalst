@@ -21,6 +21,9 @@ const pos = (teamId: number, week: number): TeamPositionWeek => ({
   weekDate: `2026-09-${7 + week * 7}T00:00:00`,
   position: 3,
   teamsInDivision: 12,
+  gamesWon: 0,
+  gamesLost: 0,
+  gamesDraw: 0,
 });
 
 const renderStats = (positions: TeamPositionWeek[]) =>

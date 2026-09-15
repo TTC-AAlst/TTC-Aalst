@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Table from 'react-bootstrap/Table';
 import cn from 'classnames';
 import { OwnClubId } from '../../models/ClubModel';
@@ -8,6 +8,8 @@ import { ITeam } from '../../models/model-interfaces';
 import { useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
 import { loadRankingHistory } from '../../reducers/rankingHistoryReducer';
 import { DivisionPointsRace } from './DivisionPointsRace';
+import { divisionSeriesKey } from './divisionRaceSeries';
+import './DivisionRanking.css';
 
 type DivisionRankingProps = {
   team: ITeam;
@@ -15,6 +17,7 @@ type DivisionRankingProps = {
 
 export const DivisionRanking = ({ team }: DivisionRankingProps) => {
   const dispatch = useTtcDispatch();
+  const [selectedKey, setSelectedKey] = useState<string | undefined>(undefined);
   const ownTeamCodes = useTtcSelector(state =>
     state.teams.filter(ownTeam => ownTeam.frenoy.divisionId === team.frenoy.divisionId).map(ownTeam => ownTeam.teamCode),
   );
@@ -26,7 +29,13 @@ export const DivisionRanking = ({ team }: DivisionRankingProps) => {
 
   return (
     <>
-      <DivisionPointsRace divisionId={team.frenoy.divisionId} ownClubId={OwnClubId} ownTeamCodes={ownTeamCodes} />
+      <DivisionPointsRace
+        divisionId={team.frenoy.divisionId}
+        ownClubId={OwnClubId}
+        ownTeamCodes={ownTeamCodes}
+        selectedKey={selectedKey}
+        onSelect={setSelectedKey}
+      />
       <Table size="sm" hover>
         <thead>
           <tr>
@@ -39,21 +48,29 @@ export const DivisionRanking = ({ team }: DivisionRankingProps) => {
           </tr>
         </thead>
         <tbody>
-          {team.ranking.map(teamRanking => (
-            <tr
-              className={cn({ 'match-won accentuate': teamRanking.clubId === OwnClubId, irrelevant: teamRanking.isForfait })}
-              key={teamRanking.clubId + teamRanking.teamCode}
-            >
-              <td>{teamRanking.position}</td>
-              <td>
-                <OpponentLink team={team} opponent={{ clubId: teamRanking.clubId, teamCode: teamRanking.teamCode }} withPosition={false} />
-              </td>
-              <td className="d-none d-sm-table-cell">{teamRanking.gamesWon}</td>
-              <td className="d-none d-sm-table-cell">{teamRanking.gamesLost}</td>
-              <td className="d-none d-sm-table-cell">{teamRanking.gamesDraw}</td>
-              <td>{teamRanking.points}</td>
-            </tr>
-          ))}
+          {team.ranking.map(teamRanking => {
+            const key = divisionSeriesKey(teamRanking.clubId, teamRanking.teamCode);
+            return (
+              <tr
+                className={cn('division-ranking-row', {
+                  'match-won accentuate': teamRanking.clubId === OwnClubId,
+                  irrelevant: teamRanking.isForfait,
+                  'division-ranking-selected': selectedKey === key,
+                })}
+                key={teamRanking.clubId + teamRanking.teamCode}
+                onClick={() => setSelectedKey(selectedKey === key ? undefined : key)}
+              >
+                <td>{teamRanking.position}</td>
+                <td>
+                  <OpponentLink team={team} opponent={{ clubId: teamRanking.clubId, teamCode: teamRanking.teamCode }} withPosition={false} />
+                </td>
+                <td className="d-none d-sm-table-cell">{teamRanking.gamesWon}</td>
+                <td className="d-none d-sm-table-cell">{teamRanking.gamesLost}</td>
+                <td className="d-none d-sm-table-cell">{teamRanking.gamesDraw}</td>
+                <td>{teamRanking.points}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
     </>

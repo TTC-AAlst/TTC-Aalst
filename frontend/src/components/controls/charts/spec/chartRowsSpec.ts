@@ -1,10 +1,10 @@
 import { toChartRows, RaceSeries } from '../chartRows';
 
-const series = (key: string, points: [string, number][]): RaceSeries => ({
+const series = (key: string, points: [string, number][]): RaceSeries<{ note: string }> => ({
   key,
   label: key.toUpperCase(),
   highlighted: false,
-  points: points.map(([weekDate, value]) => ({ weekDate, value, note: `${value}` })),
+  points: points.map(([weekDate, value]) => ({ weekDate, value, meta: { note: `${value}` } })),
 });
 
 describe('toChartRows', () => {
@@ -63,9 +63,9 @@ describe('toChartRows', () => {
     expect(rows[1]!.byKey.b!.value).toBe(2);
   });
 
-  it('carries the note for the tooltip', () => {
+  it('carries the payload the tooltip needs', () => {
     const rows = toChartRows([series('a', [['2026-09-14T00:00:00', 3]])]);
 
-    expect(rows[0]!.byKey.a!.note).toBe('3');
+    expect(rows[0]!.byKey.a!.meta.note).toBe('3');
   });
 });

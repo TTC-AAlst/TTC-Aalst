@@ -20,6 +20,9 @@ export type TeamPositionWeek = {
   weekDate: string;
   position: number;
   teamsInDivision: number;
+  gamesWon: number;
+  gamesLost: number;
+  gamesDraw: number;
 };
 
 /** A single standing is a dot, not a race: both charts stay hidden until a second week lands. */
