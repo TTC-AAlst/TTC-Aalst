@@ -15,7 +15,7 @@ public class OwnTeamPositionsTests
     private const int TeamAId = 493;
     private const int TeamBId = 494;
 
-    private static DivisionRankingWeekEntity Week(int week, string teamCode, int clubId, int position) => new()
+    private static DivisionRankingWeekEntity Week(int week, string teamCode, int clubId, int position, int won = 0, int lost = 0, int draw = 0) => new()
     {
         Year = 2026,
         Competition = Competition.Sporta,
@@ -25,6 +25,9 @@ public class OwnTeamPositionsTests
         TeamCode = teamCode,
         ClubId = clubId,
         Position = position,
+        GamesWon = won,
+        GamesLost = lost,
+        GamesDraw = draw,
     };
 
     private static OwnTeam[] OwnTeams =>
@@ -112,6 +115,16 @@ public class OwnTeamPositionsTests
         var result = OwnTeamPositions.Build(weeks, OwnTeams);
 
         Assert.Equal(new DateTime(2026, 9, 21), result.Single().WeekDate);
+    }
+
+    [Fact]
+    public void CarriesTheMatchTally()
+    {
+        var weeks = new[] { Week(1, "A", Constants.OwnClubId, 3, won: 5, lost: 2, draw: 1) };
+
+        var result = OwnTeamPositions.Build(weeks, OwnTeams);
+
+        Assert.Equal((5, 2, 1), (result.Single().GamesWon, result.Single().GamesLost, result.Single().GamesDraw));
     }
 
     [Fact]
