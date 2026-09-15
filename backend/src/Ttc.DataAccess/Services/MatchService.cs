@@ -421,15 +421,15 @@ public class MatchService
     /// </summary>
     public async Task SyncDivisionRankingHistory(Competition competition, int frenoyDivisionId, bool refetchRecent)
     {
-        var currentWeek = await _context.Matches
-            .Where(x => x.FrenoyDivisionId == frenoyDivisionId
-                        && x.FrenoySeason == _context.CurrentFrenoySeason
-                        && x.Date <= DateTime.Now)
-            .Select(x => (int?)x.Week)
-            .MaxAsync() ?? 0;
+        var matches = await _context.Matches
+            .Where(x => x.FrenoyDivisionId == frenoyDivisionId && x.FrenoySeason == _context.CurrentFrenoySeason)
+            .Select(x => new { x.Week, x.Date })
+            .ToListAsync();
+
+        var calendar = DivisionWeekCalendar.Build(matches.Select(x => (x.Week, x.Date)), DateTime.Now);
 
         var teamsApi = new FrenoyTeamsApi(_context, competition);
-        await teamsApi.SyncDivisionRankingHistory(frenoyDivisionId, currentWeek, refetchRecent);
+        await teamsApi.SyncDivisionRankingHistory(frenoyDivisionId, calendar, refetchRecent);
     }
 
     /// <summary>Every division one of our teams plays in this season.</summary>

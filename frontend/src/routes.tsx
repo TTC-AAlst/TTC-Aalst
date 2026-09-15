@@ -27,6 +27,7 @@ const Facts = React.lazy(() => import('./components/other/Facts'));
 const Teams = React.lazy(() => import('./components/teams/Teams').then(m => ({ default: m.Teams })));
 const Admin = React.lazy(() => import('./components/admin/Admin'));
 const OpponentOverview = React.lazy(() => import('./components/teams/OpponentOverview').then(m => ({ default: m.OpponentOverview })));
+const PublicDashboard = React.lazy(() => import('./components/dashboard/PublicDashboard').then(m => ({ default: m.PublicDashboard })));
 
 const RouterEffects = () => {
   const location = useLocation();
@@ -67,6 +68,8 @@ const Routes = () => {
         <Route path={t.route('links')} element={<App Component={Links} />} />
 
         <Route path={`${t.route('admin')}/:tabKey?`} element={<App Component={Admin} />} />
+
+        <Route path={t.route('publicHome')} element={<App Component={PublicDashboard} />} />
 
         <Route path="/" element={<App Component={Intro} />} />
         <Route path="*" element={<App Component={NotFound} />} />

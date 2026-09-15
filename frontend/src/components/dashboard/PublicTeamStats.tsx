@@ -1,15 +1,20 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
 import { Strike } from '../controls/controls/Strike';
 import { TeamPosition } from '../teams/controls/TeamPosition';
 import { TeamMatchButton } from './TeamMatchButton';
-import { selectMatchesBeingPlayed, selectTeams, useTtcSelector } from '../../utils/hooks/storeHooks';
+import { selectMatchesBeingPlayed, selectTeams, useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
 import { browseTo } from '../../routes';
 import { ITeam } from '../../models/model-interfaces';
 import t from '../../locales';
 import { Icon } from '../controls/Icons/Icon';
+import { hasEnoughWeeks, loadTeamPositions } from '../../reducers/rankingHistoryReducer';
+import { DashboardTeamPositions } from './DashboardTeamPositions';
 
 const CompactTeamCard = ({ team }: { team: ITeam }) => {
   const ranking = team.getDivisionRanking();
@@ -61,8 +66,14 @@ const CompactTeamCard = ({ team }: { team: ITeam }) => {
 };
 
 export const PublicTeamStats = () => {
+  const dispatch = useTtcDispatch();
   const teams = useTtcSelector(selectTeams);
   const matchesBeingPlayed = useTtcSelector(selectMatchesBeingPlayed);
+  const positions = useTtcSelector(state => state.rankingHistory.positions);
+
+  useEffect(() => {
+    dispatch(loadTeamPositions());
+  }, [dispatch]);
 
   const vttlTeams = teams.filter(team => team.competition === 'Vttl' && !team.getDivisionRanking().empty);
   const sportaTeams = teams.filter(team => team.competition === 'Sporta' && !team.getDivisionRanking().empty);
@@ -70,6 +81,21 @@ export const PublicTeamStats = () => {
   if (vttlTeams.length === 0 && sportaTeams.length === 0) {
     return null;
   }
+
+  const cards = (
+    <Row>
+      <Col md={6}>
+        {vttlTeams.map(team => (
+          <CompactTeamCard key={team.id} team={team} />
+        ))}
+      </Col>
+      <Col md={6}>
+        {sportaTeams.map(team => (
+          <CompactTeamCard key={team.id} team={team} />
+        ))}
+      </Col>
+    </Row>
+  );
 
   return (
     <div style={{ marginBottom: 20 }}>
@@ -83,18 +109,18 @@ export const PublicTeamStats = () => {
           </Link>
         )}
       </div>
-      <Row>
-        <Col md={6}>
-          {vttlTeams.map(team => (
-            <CompactTeamCard key={team.id} team={team} />
-          ))}
-        </Col>
-        <Col md={6}>
-          {sportaTeams.map(team => (
-            <CompactTeamCard key={team.id} team={team} />
-          ))}
-        </Col>
-      </Row>
+      {hasEnoughWeeks(positions) ? (
+        <Tabs defaultActiveKey="cards">
+          <Tab eventKey="cards" title={t('dashboard.teamStatsCards')}>
+            {cards}
+          </Tab>
+          <Tab eventKey="graph" title={t('dashboard.teamStatsGraph')}>
+            <DashboardTeamPositions />
+          </Tab>
+        </Tabs>
+      ) : (
+        cards
+      )}
     </div>
   );
 };

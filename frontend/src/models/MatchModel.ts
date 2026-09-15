@@ -20,6 +20,7 @@ import {
   IFullStoreMatchOwn,
   IMatchComment,
 } from './model-interfaces';
+import { parseSetScores } from './utils/setScores';
 import { logger } from '../utils/logger';
 
 // TODO: Duplicted in backend. Should be in db.
@@ -325,6 +326,7 @@ export default class MatchModel implements IMatch {
         out: outPlayer,
         homeSets: game.homePlayerSets,
         outSets: game.outPlayerSets,
+        setScores: parseSetScores(game.scores),
         outcome: game.outcome,
         isDoubles: false,
         ownPlayer: { playerId: 0 },

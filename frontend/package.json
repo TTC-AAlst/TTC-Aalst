@@ -36,6 +36,7 @@
     "react-redux": "^9.3.0",
     "react-router-dom": "7.18.3",
     "react-select": "5.10.2",
+    "recharts": "^3.10.1",
     "redux": "^5.0.1"
   },
   "overrides": {

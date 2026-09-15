@@ -65,6 +65,42 @@ describe('HeaderNavigation', () => {
     expect(screen.getByText('Mijn spelerspagina')).toBeInTheDocument();
   });
 
+  it('renders "Bezoekerspagina" when logged in', () => {
+    renderWithProviders(
+      <TestRouter>
+        <Navigation navOpen closeNav={() => {}} />
+      </TestRouter>,
+      {
+        preloadedState: {
+          user: { playerId: 42, teams: [], security: [] },
+          players: [testPlayer],
+          matches: [],
+          teams: [],
+        },
+      },
+    );
+
+    expect(screen.getByText('Bezoekerspagina')).toBeInTheDocument();
+  });
+
+  it('does not render "Bezoekerspagina" when not logged in', () => {
+    renderWithProviders(
+      <TestRouter>
+        <Navigation navOpen closeNav={() => {}} />
+      </TestRouter>,
+      {
+        preloadedState: {
+          user: { playerId: 0, teams: [], security: [] },
+          players: [testPlayer],
+          matches: [],
+          teams: [],
+        },
+      },
+    );
+
+    expect(screen.queryByText('Bezoekerspagina')).not.toBeInTheDocument();
+  });
+
   it('does not render "Mijn spelerspagina" when not logged in', () => {
     renderWithProviders(
       <TestRouter>

@@ -60,6 +60,7 @@ New EF entity `DivisionRankingWeekEntity`.
 | `Competition` | VTTL and Sporta division ids are independent sequences and may collide |
 | `FrenoyDivisionId` | |
 | `Week` | |
+| `WeekDate` | the monday that week was played on, so charts can put two competitions on one axis |
 | `Position`, `Points`, `GamesPlayed`, `GamesWon`, `GamesLost`, `GamesDraw` | from `GetDivisionRanking` |
 | `ClubId`, `TeamCode` | |
 | `TeamName` | stored verbatim from Frenoy (e.g. `St.-Niklase A`). Other clubs in a division are not guaranteed to resolve from our clubs table, and a join buys nothing. |
@@ -75,8 +76,11 @@ existing per-team sync the admin UI triggers, so syncing a team also refreshes i
 division's race:
 
 1. Read the weeks already stored for the division.
-2. Derive the current week from the division's own match calendar — matches with a
-   date on or before today, already in our matches table. No extra API call.
+2. Build a `DivisionWeekCalendar` from the division's own match calendar, already in
+   our matches table — no extra API call. It gives the current week (matches dated on
+   or before today, ignoring the ones Frenoy has not scheduled yet) and the monday
+   each week belongs to. A week with no dated match is not fetched: it could not be
+   placed on an axis.
 3. Fetch every missing week, plus re-fetch the last 2 stored weeks to pick up
    forfeits and retroactive corrections.
 4. Upsert on `(Year, Competition, FrenoyDivisionId, Week, TeamCode)`.
@@ -100,61 +104,104 @@ The first mirrors the existing `Ranking/{competition}/{divisionId:int}` route on
 
 ## Frontend
 
-### `components/controls/charts/LineChart.tsx`
+### `components/controls/charts/RaceChart.tsx`
 
-One generic hand-rolled SVG line chart, no dependency. The project has no charting
-library and this needs a dozen lines on numeric axes, which is not worth ~100KB.
-Hand-rolling also keeps the draw-on-load animation under our control and leaves the
-result assertable as DOM, consistent with how the rest of the suite tests.
+One generic line chart on **Recharts**, behind `LazyRaceChart` so the ~91KB gzipped
+dependency never enters the eager bundle: only the two pages that chart anything pay
+for it. Hand-rolling was tried first and abandoned — axes, tick layout, label
+collision and hover hit-testing are most of what a charting library is.
 
 ```ts
-type Series = {
-  label: string;
-  points: { x: number; y: number }[];
-  highlighted: boolean;
-};
-
-type LineChartProps = {
-  series: Series[];
+type RacePoint<T> = { weekDate: string; value: number; meta: T };
+type RaceSeries<T> = { key: string; label: string; highlighted: boolean; color?: string; points: RacePoint<T>[] };
+type RaceChartProps<T> = {
+  series: RaceSeries<T>[];
   yInverted?: boolean;
-  formatTooltip: (series: Series, point: { x: number; y: number }) => string;
+  selectedKey?: string;
+  onSelect?: (key: string | undefined) => void;
+  renderTooltip: (row: ChartRow<T>, series: RaceSeries<T>[], activeKey: string | undefined) => ReactNode;
 };
 ```
+
+The point payload is opaque to the chart: each consumer decides what its tooltip
+needs and renders it.
+
+### The x axis is a date, not a week number
+
+VTTL week 3 and Sporta week 3 are not the same date, so a shared week-number axis
+silently compares two calendars. Matches are bucketed by the **monday of the week
+they were played**, and that monday is both the x value and the tick label. The
+backend stores it per row (`DivisionRankingWeekEntity.WeekDate`), derived from the
+division's own match calendar by `DivisionWeekCalendar`.
+
+`chartRows.toChartRows` merges every series onto one row per monday, which is what
+lets a VTTL line and a Sporta line share an axis honestly.
+
+### Colour
+
+Slots 1 and 2 of a CVD-validated categorical palette (`#2a78d6`, `#eb6834`); every
+other line is muted grey.
+
+| Chart | Colour carries | Identity carries |
+| ----- | -------------- | ---------------- |
+| Division points race | ours vs. the rest (two slots, since Sporta A and B share division 1957) | end-of-line label for ours, tooltip for the rest |
+| Dashboard positions | the competition | end-of-line label per team |
+
+Nine of our teams cannot get nine distinguishable hues, so the dashboard encodes the
+competition in colour and the team in its label.
+
+### Picking a line
+
+Hovering or selecting a line emphasises it, labels its end and dims the rest. A 1.5px
+stroke is essentially unhittable, so every series is shadowed by a 14px transparent
+twin that carries the mouse handlers.
+
+Selection is shared, not owned by the chart: clicking a row in the division ranking
+table picks that line, and clicking a line picks its row. Both sides key off
+`divisionSeriesKey(clubId, teamCode)`, because every division has an A team.
+
+Nothing is highlighted by default on the dashboard. Every line there is ours, so
+emphasising all of them emphasises none, and the field flashed as the mouse crossed
+the gap between lines.
 
 ### Consumers
 
 | Where | File | Y axis | Series |
 | ----- | ---- | ------ | ------ |
-| `/ploegen/:competition/:team/ranking` | `teams/DivisionRanking.tsx` | cumulative points | all teams in the division; ours bold in club colour, others muted |
-| Dashboard Teams section | `dashboard/DashboardGlobalTeamStats.tsx` | position, inverted so 1 is top | our teams only, behind Cards/Graph tabs |
+| `/ploegen/:competition/:team/ranking` | `teams/DivisionPointsRace.tsx` | cumulative points, from 0 | all teams in the division |
+| Dashboard Teams section | `dashboard/DashboardTeamPositions.tsx` | position, inverted, from 1 | our teams only, behind Cards/Graph tabs |
 
 Points on the division page because every line there is a real competitor racing the
 same opponents. Position on the dashboard because our teams are spread across
-different divisions — five of them in Sporta alone — and points across divisions are
-not comparable.
+different divisions and points across divisions are not comparable.
 
 Position is plotted raw (1..largest division size) rather than normalised, because
 "3rd" is the number people actually say. The cost is that last-of-10 plots above
-last-of-12; the tooltip carries the context as `3rd of 12`.
+last-of-12; the tooltip carries the context as a `3 / 12` badge.
 
 ## Decisions
 
 - **Hide the chart below 2 weeks of data.** One point is a dot, not a race. This is
   why VTTL shows nothing until after 2026-09-18.
-- **Animation:** draw-on-load via `stroke-dasharray` / `stroke-dashoffset`, disabled
-  under `prefers-reduced-motion`.
 - **Legend:** twelve teams would swamp the division chart. Direct end-of-line labels
-  for our teams only; other teams identified on hover.
-- **Tooltip:** nearest week on hover.
+  for coloured series only; muted teams are identified in the tooltip.
+- **A tooltip per chart, because they answer different questions.** The division race
+  lists the whole standing of that week, leader first, so a line can be read against
+  the ones around it. The dashboard shows only the hovered team — position badge,
+  division, playing week, won/drawn/lost — since ranking teams from different
+  divisions against each other means nothing.
+- **No active dots.** Recharts' default drops a dot on every line at the hovered
+  week, which reads as noise on a twelve-line chart.
 - **Two highlighted lines** on Sporta division 1957, where both A and B play.
 
 ## Testing
 
-- Backend: missing-week fill, recent-week refetch, upsert idempotency, and the
-  current-week derivation from the match calendar.
-- Frontend: the pure scale and path-building functions unit-tested directly;
-  `LineChart` asserted on rendered SVG DOM; both consumers tested for the
-  hide-below-2-weeks rule and for highlighting two of our teams in one division.
+- Backend: missing-week fill, recent-week refetch, upsert idempotency, and
+  `DivisionWeekCalendar` — current week and monday derivation, including the undated
+  matches that Frenoy has not scheduled yet.
+- Frontend: `toChartRows` and both series builders unit-tested directly; `RaceChart`
+  and `RaceTooltip` asserted on rendered DOM; both consumers tested for the
+  hide-below-2-weeks rule.
 
 ## Out of scope
 

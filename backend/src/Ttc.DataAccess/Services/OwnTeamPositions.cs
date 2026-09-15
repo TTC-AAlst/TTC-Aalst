@@ -27,8 +27,12 @@ public static class OwnTeamPositions
                 {
                     TeamId = t.Id,
                     Week = w.Week,
+                    WeekDate = w.WeekDate,
                     Position = w.Position,
                     TeamsInDivision = sizes[new { w.Competition, w.FrenoyDivisionId, w.Week }],
+                    GamesWon = w.GamesWon,
+                    GamesLost = w.GamesLost,
+                    GamesDraw = w.GamesDraw,
                 })
             .OrderBy(x => x.TeamId).ThenBy(x => x.Week)
             .ToList();
