@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { fireEvent } from '@testing-library/react';
 import { renderWithProviders, TestRouter } from '../../../../utils/test-utils';
 import { ReadonlyIndividualMatches } from '../IndividualMatches';
 import MatchModel from '../../../../models/MatchModel';
@@ -60,12 +61,18 @@ const renderMatch = (games: ReturnType<typeof game>[]) =>
 
 describe('ReadonlyIndividualMatches set scores', () => {
   it('shows a chip per set of the game', () => {
-    const { container } = renderMatch([game(1, 3, 1, '1|-9,2|8,3|5,4|13')]);
+    const { container, getByText } = renderMatch([game(1, 3, 1, '1|-9,2|8,3|5,4|13')]);
+
+    fireEvent.click(getByText('Details'));
+
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.textContent)).toEqual(['9-11', '11-8', '11-5', '15-13']);
   });
 
   it('puts the set count, the running score and the sets in one cell spanning both columns', () => {
-    const { container } = renderMatch([game(1, 3, 1, '1|-9,2|8,3|5,4|13')]);
+    const { container, getByText } = renderMatch([game(1, 3, 1, '1|-9,2|8,3|5,4|13')]);
+
+    fireEvent.click(getByText('Details'));
+
     const cell = container.querySelector('tbody td[colspan="2"]')!;
     expect(cell).not.toBeNull();
     expect(cell.textContent).toContain('3-1');

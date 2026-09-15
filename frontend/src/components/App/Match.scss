@@ -279,6 +279,19 @@
   margin-top: 3px;
 }
 
+.set-scores-inline {
+  display: inline-flex;
+  margin-top: 0;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.set-scores-toggle {
+  padding: 0 0 0 6px;
+  font-size: 11px;
+  vertical-align: baseline;
+}
+
 .set-score {
   // Tabular figures keep the chips from jittering between 9-11 and 11-9
   font-variant-numeric: tabular-nums;

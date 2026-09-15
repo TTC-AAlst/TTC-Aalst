@@ -398,6 +398,7 @@ export default {
       individual: {
         matchTitle: 'Match',
         setsTitle: 'Sets',
+        setDetails: 'Details',
         resultTitle: 'Uitslag',
         matchHistory: 'Individuele Wedstrijden',
         opponentPlayer: 'Tegenstander',

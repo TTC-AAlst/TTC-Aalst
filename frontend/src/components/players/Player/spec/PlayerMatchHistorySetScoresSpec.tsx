@@ -69,7 +69,13 @@ const renderHistory = () =>
     { preloadedState: { matches: [awayMatch] as never, teams: [{ id: 493, teamCode: 'A', competition: 'Vttl' }] as never } },
   );
 
+const setViewportWidth = (width: number) => {
+  window.innerWidth = width;
+};
+
 describe('PlayerMatchHistory set scores', () => {
+  beforeEach(() => setViewportWidth(1024));
+
   it('shows the sets from the player his own side', () => {
     const { container } = renderHistory();
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.textContent)).toEqual(['11-9', '8-11', '11-5', '15-13']);
@@ -78,5 +84,29 @@ describe('PlayerMatchHistory set scores', () => {
   it('marks the sets the player won', () => {
     const { container } = renderHistory();
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.className.includes('set-score-won'))).toEqual([true, false, true, true]);
+  });
+
+  it('keeps the sets on the line of the set count on a desktop', () => {
+    const { container } = renderHistory();
+
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(1);
+    const setsCell = container.querySelector('tbody tr td:last-child')!;
+    expect(setsCell.textContent).toContain('3-1');
+    expect(setsCell.querySelectorAll('.set-score')).toHaveLength(4);
+    expect(container.querySelector('.set-scores')!.className).toContain('set-scores-inline');
+  });
+
+  it('drops the sets onto a row of their own on a phone', () => {
+    setViewportWidth(390);
+    const { container } = renderHistory();
+
+    const rows = container.querySelectorAll('tbody tr');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.querySelectorAll('.set-score')).toHaveLength(0);
+    expect(rows[0]!.textContent).toContain('3-1');
+
+    const setsRow = rows[1]!.querySelector('td[colspan="2"]')!;
+    expect(setsRow).not.toBeNull();
+    expect(setsRow.querySelectorAll('.set-score')).toHaveLength(4);
   });
 });

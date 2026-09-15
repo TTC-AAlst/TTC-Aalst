@@ -83,15 +83,19 @@ export const PlayerMatchHistory = ({ player }: PlayerMatchHistoryProps) => {
                 .filter(game => game.home.playerId === player.id || game.out.playerId === player.id);
 
               const isEvenMatch = matchIndex % 2 === 0;
+              // On a phone the sets get a row of their own, so the match cell has to span those too
+              const ownSetScoreRow = (game: (typeof games)[number]) => isSmallDevice && game.setScores.length > 0;
+              const rowSpan = games.length + games.filter(ownSetScoreRow).length;
 
               return games.map((game, index) => {
                 const opponentPlayer = match.isHomeMatch ? game.out : game.home;
                 const playerWon = (match.isHomeMatch && game.homeSets > game.outSets) || (!match.isHomeMatch && game.outSets > game.homeSets);
+                const setScores = <SetScores sets={game.setScores} flip={!match.isHomeMatch} inline={!isSmallDevice} />;
 
-                return (
+                return [
                   <tr key={`${match.id}-${game.matchNumber}`} className={isEvenMatch ? '' : 'table-info'}>
                     {index === 0 ? (
-                      <td rowSpan={games.length}>
+                      <td rowSpan={rowSpan}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
                           <div>
                             <div style={{ fontSize: '0.85em', color: '#666', marginBottom: 4 }}>
@@ -111,10 +115,15 @@ export const PlayerMatchHistory = ({ player }: PlayerMatchHistoryProps) => {
                     </td>
                     <td>
                       {match.isHomeMatch ? game.homeSets : game.outSets}-{match.isHomeMatch ? game.outSets : game.homeSets}
-                      <SetScores sets={game.setScores} flip={!match.isHomeMatch} />
+                      {!isSmallDevice && setScores}
                     </td>
-                  </tr>
-                );
+                  </tr>,
+                  ownSetScoreRow(game) ? (
+                    <tr key={`${match.id}-${game.matchNumber}-sets`} className={isEvenMatch ? '' : 'table-info'}>
+                      <td colSpan={2}>{setScores}</td>
+                    </tr>
+                  ) : null,
+                ];
               });
             })}
           </tbody>
