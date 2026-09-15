@@ -22,6 +22,12 @@ public class DivisionRankingWeekEntity
     public int FrenoyDivisionId { get; set; }
     public int Week { get; set; }
 
+    /// <summary>
+    /// The monday of the week these matches were played, so charts can put VTTL week 3 and
+    /// Sporta week 3 on the same axis: the week numbers match, the calendars do not.
+    /// </summary>
+    public DateTime WeekDate { get; set; }
+
     public int Position { get; set; }
     public int Points { get; set; }
     public int GamesPlayed { get; set; }

@@ -162,6 +162,7 @@ public class TeamService
             .Select(x => new DivisionRankingWeek
             {
                 Week = x.Week,
+                WeekDate = x.WeekDate,
                 Position = x.Position,
                 Points = x.Points,
                 GamesPlayed = x.GamesPlayed,

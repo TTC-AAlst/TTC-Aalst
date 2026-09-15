@@ -51,7 +51,7 @@ public class FrenoyTeamsApi : FrenoyApiBase
         }
     }
 
-    public async Task SyncDivisionRankingHistory(int divisionId, int currentWeek, bool refetchRecent)
+    public async Task SyncDivisionRankingHistory(int divisionId, DivisionWeekCalendar calendar, bool refetchRecent)
     {
         var stored = await _db.DivisionRankingWeeks
             .Where(x => x.Year == _settings.Year
@@ -61,7 +61,11 @@ public class FrenoyTeamsApi : FrenoyApiBase
             .Distinct()
             .ToListAsync();
 
-        foreach (var week in RankingWeekPlanner.WeeksToFetch(stored, currentWeek, refetchRecent))
+        // A week without a dated match cannot be placed on a chart's axis, so it is not stored either.
+        var weeks = RankingWeekPlanner.WeeksToFetch(stored, calendar.CurrentWeek, refetchRecent)
+            .Where(calendar.MondayByWeek.ContainsKey);
+
+        foreach (var week in weeks)
         {
             var response = await _frenoy.GetDivisionRankingAsync(new GetDivisionRankingRequest1
             {
@@ -88,6 +92,7 @@ public class FrenoyTeamsApi : FrenoyApiBase
                     Competition = _settings.Competition,
                     FrenoyDivisionId = divisionId,
                     Week = week,
+                    WeekDate = calendar.MondayByWeek[week],
                     Position = int.Parse(entry.Position),
                     Points = int.Parse(entry.Points),
                     GamesPlayed = int.Parse(entry.GamesPlayed),

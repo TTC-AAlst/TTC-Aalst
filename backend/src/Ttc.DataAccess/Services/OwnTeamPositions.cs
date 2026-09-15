@@ -27,6 +27,7 @@ public static class OwnTeamPositions
                 {
                     TeamId = t.Id,
                     Week = w.Week,
+                    WeekDate = w.WeekDate,
                     Position = w.Position,
                     TeamsInDivision = sizes[new { w.Competition, w.FrenoyDivisionId, w.Week }],
                 })

@@ -4,6 +4,7 @@ public class TeamPositionWeek
 {
     public int TeamId { get; set; }
     public int Week { get; set; }
+    public DateTime WeekDate { get; set; }
     public int Position { get; set; }
     public int TeamsInDivision { get; set; }
 }

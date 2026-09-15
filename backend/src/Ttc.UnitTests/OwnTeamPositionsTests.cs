@@ -21,6 +21,7 @@ public class OwnTeamPositionsTests
         Competition = Competition.Sporta,
         FrenoyDivisionId = Division,
         Week = week,
+        WeekDate = new DateTime(2026, 9, 14).AddDays((week - 1) * 7),
         TeamCode = teamCode,
         ClubId = clubId,
         Position = position,
@@ -101,6 +102,16 @@ public class OwnTeamPositionsTests
         var result = OwnTeamPositions.Build(weeks, OwnTeams);
 
         Assert.DoesNotContain(result, x => x.TeamId == TeamBId);
+    }
+
+    [Fact]
+    public void CarriesTheWeekDate()
+    {
+        var weeks = new[] { Week(2, "A", Constants.OwnClubId, 3) };
+
+        var result = OwnTeamPositions.Build(weeks, OwnTeams);
+
+        Assert.Equal(new DateTime(2026, 9, 21), result.Single().WeekDate);
     }
 
     [Fact]
