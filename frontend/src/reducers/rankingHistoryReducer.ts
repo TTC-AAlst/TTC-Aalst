@@ -4,6 +4,8 @@ import { IStoreTeam } from '../models/model-interfaces';
 
 export type DivisionRankingWeek = {
   week: number;
+  /** ISO date of the monday that week was played on. */
+  weekDate: string;
   position: number;
   points: number;
   gamesPlayed: number;
@@ -15,6 +17,7 @@ export type DivisionRankingWeek = {
 export type TeamPositionWeek = {
   teamId: number;
   week: number;
+  weekDate: string;
   position: number;
   teamsInDivision: number;
 };

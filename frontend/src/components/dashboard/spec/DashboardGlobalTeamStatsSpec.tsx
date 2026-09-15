@@ -15,7 +15,13 @@ vi.mock('../../../storeUtil', () => ({
   },
 }));
 
-const pos = (teamId: number, week: number): TeamPositionWeek => ({ teamId, week, position: 3, teamsInDivision: 12 });
+const pos = (teamId: number, week: number): TeamPositionWeek => ({
+  teamId,
+  week,
+  weekDate: `2026-09-${7 + week * 7}T00:00:00`,
+  position: 3,
+  teamsInDivision: 12,
+});
 
 const renderStats = (positions: TeamPositionWeek[]) =>
   renderWithProviders(

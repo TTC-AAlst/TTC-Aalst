@@ -1,0 +1,38 @@
+.race-chart {
+  margin-bottom: 10px;
+}
+
+.race-chart-end-label {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.race-chart-tooltip {
+  background-color: #fff;
+  border: 1px solid #d5d5cf;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.85em;
+  color: #2b2b28;
+}
+
+.race-chart-tooltip-week {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.race-chart-tooltip-own {
+  font-weight: 700;
+}
+
+.race-chart-tooltip-bullet {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.race-chart-loading {
+  height: 400px;
+}

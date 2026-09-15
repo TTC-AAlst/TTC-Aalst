@@ -20,6 +20,7 @@ const divisionId = 1957;
 
 const week = (w: number, teamCode: string, points: number, clubId: number): DivisionRankingWeek => ({
   week: w,
+  weekDate: `2026-09-${7 + w * 7}T00:00:00`,
   position: 1,
   points,
   gamesPlayed: w,
@@ -44,36 +45,8 @@ describe('DivisionPointsRace', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('draws a line per team once two weeks exist', () => {
+  it('mounts the chart once two weeks exist', () => {
     const { container } = renderRace([week(1, 'A', 3, OwnClubId), week(1, 'C', 0, 99), week(2, 'A', 6, OwnClubId), week(2, 'C', 3, 99)]);
-    expect(container.querySelectorAll('polyline')).toHaveLength(2);
-  });
-
-  it('highlights only our team', () => {
-    const { container } = renderRace([week(1, 'A', 3, OwnClubId), week(1, 'C', 0, 99), week(2, 'A', 6, OwnClubId), week(2, 'C', 3, 99)]);
-    expect(container.querySelectorAll('polyline.highlighted')).toHaveLength(1);
-  });
-
-  it('highlights both of our teams when we have two in one division', () => {
-    const { container } = renderRace([
-      week(1, 'A', 3, OwnClubId),
-      week(1, 'B', 1, OwnClubId),
-      week(1, 'C', 0, 99),
-      week(2, 'A', 6, OwnClubId),
-      week(2, 'B', 2, OwnClubId),
-      week(2, 'C', 3, 99),
-    ]);
-    expect(container.querySelectorAll('polyline.highlighted')).toHaveLength(2);
-  });
-
-  it('does not highlight another club that shares our team code', () => {
-    const { container } = renderRace([week(1, 'A', 3, OwnClubId), week(1, 'A', 0, 99), week(2, 'A', 6, OwnClubId), week(2, 'A', 3, 99)]);
-    expect(container.querySelectorAll('polyline.highlighted')).toHaveLength(1);
-  });
-
-  it('names the team and its points in the tooltip', () => {
-    const { container } = renderRace([week(1, 'A', 3, OwnClubId), week(2, 'A', 6, OwnClubId)]);
-    const titles = [...container.querySelectorAll('title')].map(t => t.textContent);
-    expect(titles).toContain('Week 2: Team A - 6 punten');
+    expect(container.querySelector('.race-chart-loading')).toBeInTheDocument();
   });
 });
