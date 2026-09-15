@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Ttc.DataAccess.Services;
 using Ttc.DataEntities;
 using Ttc.DataEntities.Core;
 using Ttc.Model.Core;
@@ -86,6 +87,23 @@ public class FrenoySyncJob : IHostedService, IDisposable
                 {
                     logger.Information("FrenoySyncJob: Partial sync for match {@clubInfo} (Id={matchId}, Frenoy={FrenoyId}, Score={Score})", clubInfo, match.Id, match.FrenoyMatchId ?? "?", $"{match.HomeScore}-{match.AwayScore}");
                     allSynced = false;
+                }
+            }
+
+            // Runs for every division, not just the ones that moved: a division whose weeks are all
+            // stored and whose results did not change costs no federation calls at all, and this is
+            // what backfills a season that was already synced before the table existed.
+            var movedDivisions = matchesToSync.Select(x => x.FrenoyDivisionId).ToHashSet();
+            var matchService = scope.ServiceProvider.GetRequiredService<MatchService>();
+            foreach (var (competition, divisionId) in await matchService.GetOwnDivisions())
+            {
+                try
+                {
+                    await matchService.SyncDivisionRankingHistory(competition, divisionId, movedDivisions.Contains(divisionId));
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex, "FrenoySyncJob: ranking history failed for division {divisionId}", divisionId);
                 }
             }
 

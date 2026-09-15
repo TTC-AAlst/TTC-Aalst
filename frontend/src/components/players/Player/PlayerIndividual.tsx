@@ -4,7 +4,8 @@ import { WonLostLabel } from '../../controls/controls/WonLostLabel';
 import { PercentageLabel } from '../../controls/controls/PercentageLabel';
 import { t } from '../../../locales';
 import { Competition, IPlayer } from '../../../models/model-interfaces';
-import { selectMatches, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { selectPlayerMatches } from '../../../reducers/selectors/selectPlayerMatches';
 
 type PlayerIndividualProps = {
   player: IPlayer;
@@ -12,15 +13,13 @@ type PlayerIndividualProps = {
 };
 
 export const PlayerIndividual = ({ player, competition }: PlayerIndividualProps) => {
-  const matches = useTtcSelector(selectMatches);
+  const matches = useTtcSelector(state => selectPlayerMatches(state, player.id));
   const comp = player.getCompetition(competition);
   if (!comp.ranking) {
     return null;
   }
 
-  const matchesWithPlayer = matches
-    .filter(match => match.isSyncedWithFrenoy && match.competition === competition)
-    .filter(match => match.games.some(game => game.homePlayerUniqueIndex === comp.uniqueIndex || game.outPlayerUniqueIndex === comp.uniqueIndex));
+  const matchesWithPlayer = matches.filter(match => match.isSyncedWithFrenoy && match.competition === competition);
 
   const playerResults = getPlayerStats(matchesWithPlayer, true).find(stats => stats.ply.id === player.id);
 
@@ -64,7 +63,7 @@ export const PlayerIndividual = ({ player, competition }: PlayerIndividualProps)
                 <WonLostLabel won={won} lost={lost} />
               </td>
               <td>
-                <PercentageLabel won={won} lost={lost} />
+                <PercentageLabel won={won} lost={lost} heat />
               </td>
               <td>{belles ? <WonLostLabel won={belles.won} lost={belles.lost} /> : null}</td>
             </tr>
@@ -78,7 +77,7 @@ export const PlayerIndividual = ({ player, competition }: PlayerIndividualProps)
             <WonLostLabel won={total.won} lost={total.lost} />
           </td>
           <td>
-            <PercentageLabel won={total.won} lost={total.lost} decimals={2} />
+            <PercentageLabel won={total.won} lost={total.lost} decimals={2} heat />
           </td>
           <td>
             <WonLostLabel won={total.bellesWon} lost={total.bellesLost} />

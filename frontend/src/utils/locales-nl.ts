@@ -157,6 +157,8 @@ export default {
     dashboard: {
       greeting: 'Hallo ${name} 🏓',
       globalTeamStats: 'Teams',
+      teamStatsCards: 'Kaarten',
+      teamStatsGraph: 'Grafiek',
       upcomingMatches: 'Volgende Wedstrijden',
       recentMatches: 'Recente Wedstrijden',
       showOtherMatches: 'Meer Wedstrijden Tonen',

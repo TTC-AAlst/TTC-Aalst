@@ -1,22 +1,32 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Tabs from 'react-bootstrap/Tabs';
+import Tab from 'react-bootstrap/Tab';
 import { Strike } from '../controls/controls/Strike';
 import { TeamRankingBadges } from '../teams/controls/TeamRankingBadges';
 import { TeamPosition } from '../teams/controls/TeamPosition';
-import { selectTeams, selectUserTeams, useTtcSelector } from '../../utils/hooks/storeHooks';
+import { selectTeams, selectUserTeams, useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
 import { useViewport } from '../../utils/hooks/useViewport';
 import { browseTo } from '../../routes';
 import { ITeam } from '../../models/model-interfaces';
 import t from '../../locales';
 import { Icon } from '../controls/Icons/Icon';
+import { loadTeamPositions, hasEnoughWeeks } from '../../reducers/rankingHistoryReducer';
+import { DashboardTeamPositions } from './DashboardTeamPositions';
 
 export const DashboardGlobalTeamStats = () => {
+  const dispatch = useTtcDispatch();
   const teams = useTtcSelector(selectTeams);
   const userTeams = useTtcSelector(selectUserTeams);
+  const positions = useTtcSelector(state => state.rankingHistory.positions);
   const viewport = useViewport();
   const isLargeDevice = viewport.width >= 1200;
   const isSmallDevice = viewport.width < 576;
   const [showOtherTeams, setShowOtherTeams] = useState(false);
+
+  useEffect(() => {
+    dispatch(loadTeamPositions());
+  }, [dispatch]);
 
   const userTeamIds = userTeams.map(team => team.id);
   const primaryTeams = userTeams;
@@ -102,10 +112,9 @@ export const DashboardGlobalTeamStats = () => {
   let smallGridTemplateColumns = isLargeDevice ? '1fr 1fr 1fr' : '1fr 1fr';
   if (isSmallDevice) smallGridTemplateColumns = '1fr';
 
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <Strike text={t('dashboard.globalTeamStats')} style={{ marginBottom: 6 }} />
-      <div style={{ display: 'grid', gridTemplateColumns: isLargeDevice ? '1fr 1fr' : '1fr', gap: 8 }}>
+  const cards = (
+    <>
+      <div style={{ display: 'grid', gridTemplateColumns: isLargeDevice ? '1fr 1fr' : '1fr', gap: 8, marginTop: 8 }}>
         {primaryTeams.map(team => renderPrimaryTeamStats(team))}
       </div>
 
@@ -130,6 +139,24 @@ export const DashboardGlobalTeamStats = () => {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: smallGridTemplateColumns, gap: 4 }}>{otherTeams.map(team => renderCompactTeamStats(team))}</div>
         ))}
+    </>
+  );
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <Strike text={t('dashboard.globalTeamStats')} style={{ marginBottom: 6 }} />
+      {hasEnoughWeeks(positions) ? (
+        <Tabs defaultActiveKey="cards">
+          <Tab eventKey="cards" title={t('dashboard.teamStatsCards')}>
+            {cards}
+          </Tab>
+          <Tab eventKey="graph" title={t('dashboard.teamStatsGraph')}>
+            <DashboardTeamPositions />
+          </Tab>
+        </Tabs>
+      ) : (
+        cards
+      )}
     </div>
   );
 };

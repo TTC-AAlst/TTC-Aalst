@@ -8,7 +8,8 @@ import { MatchDate } from '../../matches/controls/MatchDate';
 import { OpponentPlayerLabel } from '../../matches/Match/OpponentPlayer';
 import { ViewMatchDetailsButton } from '../../matches/controls/ViewMatchDetailsButton';
 import { IPlayer } from '../../../models/model-interfaces';
-import { selectMatches, useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { selectPlayerMatches } from '../../../reducers/selectors/selectPlayerMatches';
 import { useViewport } from '../../../utils/hooks/useViewport';
 import { t } from '../../../locales';
 
@@ -17,7 +18,7 @@ type PlayerMatchHistoryProps = {
 };
 
 export const PlayerMatchHistory = ({ player }: PlayerMatchHistoryProps) => {
-  const matches = useTtcSelector(selectMatches);
+  const matches = useTtcSelector(state => selectPlayerMatches(state, player.id));
   const viewport = useViewport();
   const isSmallDevice = viewport.width < 600;
 
@@ -42,7 +43,6 @@ export const PlayerMatchHistory = ({ player }: PlayerMatchHistoryProps) => {
 
   const matchesWithPlayer = matches
     .filter(match => match.isSyncedWithFrenoy && match.games.length)
-    .filter(match => match.players.some(ply => ply?.playerId === player.id))
     .filter(match => {
       if (match.competition === 'Vttl') return showVttl;
       if (match.competition === 'Sporta') return showSporta;
