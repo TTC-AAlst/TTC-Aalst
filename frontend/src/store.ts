@@ -4,6 +4,7 @@ import configReducer from './reducers/configReducer';
 import userReducer from './reducers/userReducer';
 import playersReducer, { playersQuittersSlice, eventsSlice } from './reducers/playersReducer';
 import teamsReducer, { teamRankingsSlice } from './reducers/teamsReducer';
+import rankingHistoryReducer from './reducers/rankingHistoryReducer';
 import clubsReducer from './reducers/clubsReducer';
 import readonlyMatchesReducer from './reducers/readonlyMatchesReducer';
 import matchInfoReducer from './reducers/matchInfoReducer';
@@ -20,6 +21,7 @@ export const store = configureStore({
     matchInfo: matchInfoReducer,
     teams: teamsReducer,
     teamRankings: teamRankingsSlice.reducer,
+    rankingHistory: rankingHistoryReducer,
     players: playersReducer,
     playersQuitters: playersQuittersSlice.reducer,
     events: eventsSlice.reducer,
