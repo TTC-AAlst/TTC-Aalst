@@ -152,6 +152,40 @@ public class TeamService
     }
     #endregion
 
+    public async Task<ICollection<DivisionRankingWeek>> GetRankingHistory(Competition competition, int divisionId)
+    {
+        return await _context.DivisionRankingWeeks
+            .Where(x => x.Year == _context.CurrentSeason
+                        && x.Competition == competition
+                        && x.FrenoyDivisionId == divisionId)
+            .OrderBy(x => x.Week)
+            .Select(x => new DivisionRankingWeek
+            {
+                Week = x.Week,
+                Position = x.Position,
+                Points = x.Points,
+                GamesPlayed = x.GamesPlayed,
+                ClubId = x.ClubId,
+                TeamCode = x.TeamCode,
+                TeamName = x.TeamName,
+            })
+            .ToListAsync();
+    }
+
+    public async Task<ICollection<TeamPositionWeek>> GetOwnTeamPositions()
+    {
+        var teams = await _context.Teams
+            .Where(x => x.Year == _context.CurrentSeason)
+            .Select(x => new OwnTeam(x.Id, x.Competition, x.FrenoyDivisionId, x.TeamCode))
+            .ToListAsync();
+
+        var weeks = await _context.DivisionRankingWeeks
+            .Where(x => x.Year == _context.CurrentSeason)
+            .ToListAsync();
+
+        return OwnTeamPositions.Build(weeks, teams);
+    }
+
     public async Task<Team> ToggleTeamPlayer(TeamToggleRequest req)
     {
         var team = _context.Teams.Include(x => x.Players).Single(x => x.Id == req.TeamId);
