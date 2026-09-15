@@ -76,6 +76,11 @@ export const Navigation = ({ navOpen, closeNav }: NavigationProps) => {
             </button>
           ) : null}
           <hr className="my-0" />
+          {currentPlayer && (
+            <button className="list-group-item list-group-item-action" onClick={() => goto(t.route('publicHome'))}>
+              {t('nav.publicHome')}
+            </button>
+          )}
           <button className="list-group-item list-group-item-action" onClick={() => goto(t.route('generalInfo'))}>
             {t('nav.generalInfo')}
           </button>

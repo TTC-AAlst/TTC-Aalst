@@ -48,6 +48,7 @@ export default {
     facts: '/weetjes',
     administration: '/bestuur',
     generalInfo: '/club-info',
+    publicHome: '/bezoekers',
   },
   trans: {
     fullClubName: 'TTC Aalst',
@@ -108,6 +109,7 @@ export default {
       admin: 'Admin',
       administration: 'Bestuur',
       generalInfo: 'Clubinfo',
+      publicHome: 'Bezoekerspagina',
     },
     profile: {
       tooltip: 'Open jouw profiel',
