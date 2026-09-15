@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import cn from 'classnames';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Table from 'react-bootstrap/Table';
@@ -93,7 +94,7 @@ export const PlayerMatchHistory = ({ player }: PlayerMatchHistoryProps) => {
                 const setScores = <SetScores sets={game.setScores} flip={!match.isHomeMatch} inline={!isSmallDevice} />;
 
                 return [
-                  <tr key={`${match.id}-${game.matchNumber}`} className={isEvenMatch ? '' : 'table-info'}>
+                  <tr key={`${match.id}-${game.matchNumber}`} className={cn({ 'table-info': !isEvenMatch, 'set-scores-joined': ownSetScoreRow(game) })}>
                     {index === 0 ? (
                       <td rowSpan={rowSpan}>
                         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>

@@ -287,9 +287,15 @@
 }
 
 .set-scores-toggle {
-  padding: 0 0 0 6px;
-  font-size: 11px;
-  vertical-align: baseline;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  margin-left: 6px;
+  font-size: 10px;
+  vertical-align: middle;
 }
 
 .set-score {
@@ -312,4 +318,10 @@
   background-color: #f8d7da;
   border-color: #f5c2c7;
   color: #842029;
+}
+
+// The set scores sit on a row of their own on a phone: keep them visually part of the game above.
+// The match cell is skipped because it spans the whole match, so its border separates matches.
+.set-scores-joined > td:not([rowspan]) {
+  border-bottom-width: 0;
 }

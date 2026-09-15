@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import { matchOutcome } from '../../../models/MatchModel';
 import { OpponentPlayerLabel } from './OpponentPlayer';
+import { Icon } from '../../controls/Icons/Icon';
 import { TrophyIcon } from '../../controls/Icons/TrophyIcon';
 import { PlayerLink } from '../../players/controls/PlayerLink';
 import { FrenoyLink, FrenoyWeekLink } from '../../controls/Buttons/FrenoyButton';
@@ -29,8 +30,15 @@ const SetScoresToggle = ({ games, shown, onToggle }: SetScoresToggleProps) => {
     return null;
   }
   return (
-    <Button variant="link" size="sm" className="set-scores-toggle" onClick={onToggle} aria-expanded={shown}>
-      {t('match.individual.setDetails')}
+    <Button
+      variant="outline-secondary"
+      size="sm"
+      className="set-scores-toggle"
+      onClick={onToggle}
+      aria-expanded={shown}
+      aria-label={t('match.individual.setDetails')}
+    >
+      <Icon fa={shown ? 'fa fa-chevron-up' : 'fa fa-chevron-down'} translate tooltip="match.individual.setDetails" />
     </Button>
   );
 };

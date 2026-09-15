@@ -66,6 +66,8 @@ const renderMatch = (scores?: string) =>
     </TestRouter>,
   );
 
+const toggle = (container: HTMLElement) => container.querySelector<HTMLButtonElement>('button.set-scores-toggle');
+
 describe('IndividualMatches set score details', () => {
   it('hides the set scores until they are asked for', () => {
     const { container } = renderMatch('1|-9,2|8,3|5,4|13');
@@ -73,25 +75,35 @@ describe('IndividualMatches set score details', () => {
   });
 
   it('shows the set scores after clicking Details', () => {
-    const { container, getByText } = renderMatch('1|-9,2|8,3|5,4|13');
+    const { container } = renderMatch('1|-9,2|8,3|5,4|13');
 
-    fireEvent.click(getByText('Details'));
+    fireEvent.click(toggle(container)!);
 
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.textContent)).toEqual(['9-11', '11-8', '11-5', '15-13']);
   });
 
   it('hides the set scores again on a second click', () => {
-    const { container, getByText } = renderMatch('1|-9,2|8,3|5,4|13');
+    const { container } = renderMatch('1|-9,2|8,3|5,4|13');
 
-    fireEvent.click(getByText('Details'));
-    fireEvent.click(getByText('Details'));
+    fireEvent.click(toggle(container)!);
+    fireEvent.click(toggle(container)!);
 
     expect(container.querySelectorAll('.set-score')).toHaveLength(0);
   });
 
   it('offers no Details for a competition without set scores', () => {
-    const { queryByText } = renderMatch(undefined);
-    expect(queryByText('Details')).toBeNull();
+    const { container } = renderMatch(undefined);
+    expect(toggle(container)).toBeNull();
+  });
+
+  it('turns the collapse icon around while the set scores are shown', () => {
+    const { container } = renderMatch('1|-9,2|8,3|5,4|13');
+
+    expect(toggle(container)!.querySelector('.fa-chevron-down')).not.toBeNull();
+
+    fireEvent.click(toggle(container)!);
+
+    expect(toggle(container)!.querySelector('.fa-chevron-up')).not.toBeNull();
   });
 
   it('links the Frenoy match id to the match on Frenoy', () => {

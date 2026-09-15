@@ -109,4 +109,13 @@ describe('PlayerMatchHistory set scores', () => {
     expect(setsRow).not.toBeNull();
     expect(setsRow.querySelectorAll('.set-score')).toHaveLength(4);
   });
+
+  it('joins the game row to its sets row so no border runs between them', () => {
+    setViewportWidth(390);
+    const { container } = renderHistory();
+
+    const rows = container.querySelectorAll('tbody tr');
+    expect(rows[0]!.className).toContain('set-scores-joined');
+    expect(rows[1]!.className).not.toContain('set-scores-joined');
+  });
 });
