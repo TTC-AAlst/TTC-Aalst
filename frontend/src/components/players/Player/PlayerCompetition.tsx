@@ -3,6 +3,7 @@ import { DivisionHeader } from '../../teams/controls/DivisionHeader';
 import { PlayerIndividual } from './PlayerIndividual';
 import { Competition, IPlayer } from '../../../models/model-interfaces';
 import { useTtcSelector } from '../../../utils/hooks/storeHooks';
+import { selectPlayerTeam } from '../../../reducers/selectors/selectPlayerTeam';
 
 type PlayerCompetitionProps = {
   player: IPlayer;
@@ -11,12 +12,13 @@ type PlayerCompetitionProps = {
 
 export const PlayerCompetition = ({ player, competition }: PlayerCompetitionProps) => {
   const endOfSeason = useTtcSelector(state => state.config.params.endOfSeason);
+  const playedTeam = useTtcSelector(state => selectPlayerTeam(state, player.id, competition));
   const comp = player.getCompetition(competition);
   if (!comp.ranking) {
     return null;
   }
 
-  const team = player.getTeam(competition);
+  const team = playedTeam ?? player.getTeam(competition);
   return (
     <Card>
       <Card.Header>
