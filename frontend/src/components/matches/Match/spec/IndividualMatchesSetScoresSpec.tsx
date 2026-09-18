@@ -117,6 +117,17 @@ describe('ReadonlyIndividualMatches set scores', () => {
     expect(scoreCell.closest('tr')!.className).toContain('set-scores-joined');
   });
 
+  it('stripes a game and its set scores row as one on a phone', () => {
+    window.innerWidth = 400;
+    const { container } = renderMatch([game(1, 3, 2, '1|-9,2|8,3|5,4|-7,5|13'), game(2, 1, 3, '1|-9,2|-8,3|5,4|-7')]);
+
+    showSets(container);
+
+    expect(container.querySelector('table')!.className).not.toContain('table-striped');
+    const striped = Array.from(container.querySelectorAll('tbody tr')).map(x => x.className.includes('set-scores-stripe'));
+    expect(striped).toEqual([true, true, false, false]);
+  });
+
   it('leaves a Sporta game without set scores alone', () => {
     const { container } = renderMatch([game(1, 3, 1)]);
     expect(container.querySelectorAll('.set-score')).toHaveLength(0);

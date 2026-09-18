@@ -275,6 +275,7 @@
 .set-scores {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 3px;
   margin-top: 3px;
 }
@@ -308,11 +309,11 @@
   border-radius: 3px;
 }
 
-// Filled vs outlined, not just green vs red: the chips stay tellable apart without color
+// Green fill vs red outline, not just green vs red: the chips stay tellable apart without color
 .set-score-won {
-  background-color: #0f5132;
-  border-color: #0f5132;
-  color: #fff;
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+  color: #0f5132;
   font-weight: 700;
 }
 
@@ -327,4 +328,9 @@
 // The match cell is skipped because it spans the whole match, so its border separates matches.
 .set-scores-joined > td:not([rowspan]) {
   border-bottom-width: 0;
+}
+
+// Striping per row would split a game from its set scores: the pair is striped as one instead
+.set-scores-stripe > td {
+  background-color: rgba(0, 0, 0, 0.05);
 }

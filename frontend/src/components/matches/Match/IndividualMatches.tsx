@@ -59,9 +59,10 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
   }
 
   const games = match.getGameMatches().sort((a, b) => a.matchNumber - b.matchNumber);
+  const pairedSetScores = isSmallDevice && showSetScores;
 
   return (
-    <Table size="sm" striped className="match-card-tab-table">
+    <Table size="sm" striped={!pairedSetScores} className="match-card-tab-table">
       <thead>
         <tr>
           <th colSpan={2}>
@@ -76,16 +77,17 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
         </tr>
       </thead>
       <tbody>
-        {games.map(game => {
+        {games.map((game, index) => {
           matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
           const matchWonTrophy = game.outcome === matchOutcome.Won ? <TrophyIcon style={{ marginRight: 6 }} /> : null;
           const setScores = showSetScores ? <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} /> : null;
           // Five sets don't fit next to the score on a phone: give them the full table width one row lower
-          const ownSetScoreRow = isSmallDevice && showSetScores && game.setScores.length > 0;
+          const ownSetScoreRow = pairedSetScores && game.setScores.length > 0;
           const rowClassName = cn({
             success: game.ownPlayer.playerId === pinnedPlayerId && game.outcome === matchOutcome.Won,
             danger: game.ownPlayer.playerId === pinnedPlayerId && game.outcome !== matchOutcome.Won,
             accentuate: game.ownPlayer.playerId === ownPlayerId,
+            'set-scores-stripe': pairedSetScores && index % 2 === 0,
           });
           const pinPlayer = () => setPinnedPlayerId(pinnedPlayerId === game.ownPlayer.playerId ? null : game.ownPlayer.playerId);
           return [
@@ -180,9 +182,10 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
   const matchResult = { home: 0, out: 0 };
 
   const games = match.getGameMatches().sort((a, b) => a.matchNumber - b.matchNumber);
+  const pairedSetScores = isSmallDevice && showSetScores;
 
   return (
-    <Table striped size="sm" className="match-card-tab-table">
+    <Table striped={!pairedSetScores} size="sm" className="match-card-tab-table">
       <thead>
         <tr>
           <th colSpan={2}>{t('match.report.title')}</th>
@@ -196,14 +199,15 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
         </tr>
       </thead>
       <tbody>
-        {games.map(game => {
+        {games.map((game, index) => {
           matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
           const highlightRow = game.home?.uniqueIndex === pinnedPlayerIndex || game.out?.uniqueIndex === pinnedPlayerIndex;
           const setScores = showSetScores ? <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} /> : null;
           // Five sets don't fit next to the score on a phone: give them the full table width one row lower
-          const ownSetScoreRow = isSmallDevice && showSetScores && game.setScores.length > 0;
+          const ownSetScoreRow = pairedSetScores && game.setScores.length > 0;
+          const rowClassName = cn({ success: highlightRow, 'set-scores-stripe': pairedSetScores && index % 2 === 0 });
           return [
-            <tr key={game.matchNumber} className={cn({ success: highlightRow, 'set-scores-joined': ownSetScoreRow })}>
+            <tr key={game.matchNumber} className={cn(rowClassName, { 'set-scores-joined': ownSetScoreRow })}>
               {!game.isDoubles ? (
                 [
                   <td key="1">
@@ -241,7 +245,7 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
               </td>
             </tr>,
             ownSetScoreRow ? (
-              <tr key={`${game.matchNumber}-sets`} className={cn({ success: highlightRow })}>
+              <tr key={`${game.matchNumber}-sets`} className={rowClassName}>
                 <td colSpan={4}>{setScores}</td>
               </tr>
             ) : null,
