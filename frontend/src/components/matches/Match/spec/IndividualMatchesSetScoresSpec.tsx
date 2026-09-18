@@ -62,6 +62,10 @@ const renderMatch = (games: ReturnType<typeof game>[], isHomeMatch = true) =>
 const showSets = (container: HTMLElement) => fireEvent.click(container.querySelector<HTMLButtonElement>('button.set-scores-toggle')!);
 
 describe('ReadonlyIndividualMatches set scores', () => {
+  beforeEach(() => {
+    window.innerWidth = 1024;
+  });
+
   it('shows a chip per set of the game', () => {
     const { container } = renderMatch([game(1, 3, 1, '1|-9,2|8,3|5,4|13')]);
 
@@ -97,6 +101,20 @@ describe('ReadonlyIndividualMatches set scores', () => {
 
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.textContent)).toEqual(['9-11', '11-8', '11-5', '15-13']);
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.className.includes('set-score-won'))).toEqual([true, false, false, false]);
+  });
+
+  it('gives the sets a full width row of their own on a phone, so five of them fit on one line', () => {
+    window.innerWidth = 400;
+    const { container } = renderMatch([game(1, 3, 2, '1|-9,2|8,3|5,4|-7,5|13')]);
+
+    showSets(container);
+
+    const scoreCell = container.querySelector('tbody td[colspan="2"]')!;
+    expect(scoreCell.querySelectorAll('.set-score')).toHaveLength(0);
+
+    const setsCell = container.querySelector('tbody td[colspan="4"]')!;
+    expect(Array.from(setsCell.querySelectorAll('.set-score')).map(x => x.textContent)).toEqual(['9-11', '11-8', '11-5', '7-11', '15-13']);
+    expect(scoreCell.closest('tr')!.className).toContain('set-scores-joined');
   });
 
   it('leaves a Sporta game without set scores alone', () => {

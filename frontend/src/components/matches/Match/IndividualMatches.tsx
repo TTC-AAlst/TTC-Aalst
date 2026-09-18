@@ -51,6 +51,7 @@ type IndividualMatchesProps = {
 export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps) => {
   const [pinnedPlayerId, setPinnedPlayerId] = useState<number | null>(ownPlayerId);
   const [showSetScores, setShowSetScores] = useState(false);
+  const isSmallDevice = useViewport().width < 600;
   const matchResult = { home: 0, out: 0 };
 
   if (match.games.length === 0) {
@@ -78,16 +79,17 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
         {games.map(game => {
           matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
           const matchWonTrophy = game.outcome === matchOutcome.Won ? <TrophyIcon style={{ marginRight: 6 }} /> : null;
-          return (
-            <tr
-              key={game.matchNumber}
-              className={cn({
-                success: game.ownPlayer.playerId === pinnedPlayerId && game.outcome === matchOutcome.Won,
-                danger: game.ownPlayer.playerId === pinnedPlayerId && game.outcome !== matchOutcome.Won,
-                accentuate: game.ownPlayer.playerId === ownPlayerId,
-              })}
-              onClick={() => setPinnedPlayerId(pinnedPlayerId === game.ownPlayer.playerId ? null : game.ownPlayer.playerId)}
-            >
+          const setScores = showSetScores ? <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} /> : null;
+          // Five sets don't fit next to the score on a phone: give them the full table width one row lower
+          const ownSetScoreRow = isSmallDevice && showSetScores && game.setScores.length > 0;
+          const rowClassName = cn({
+            success: game.ownPlayer.playerId === pinnedPlayerId && game.outcome === matchOutcome.Won,
+            danger: game.ownPlayer.playerId === pinnedPlayerId && game.outcome !== matchOutcome.Won,
+            accentuate: game.ownPlayer.playerId === ownPlayerId,
+          });
+          const pinPlayer = () => setPinnedPlayerId(pinnedPlayerId === game.ownPlayer.playerId ? null : game.ownPlayer.playerId);
+          return [
+            <tr key={game.matchNumber} className={cn(rowClassName, { 'set-scores-joined': ownSetScoreRow })} onClick={pinPlayer}>
               {!game.isDoubles ? (
                 [
                   <td className={cn({ accentuate: game.outcome === matchOutcome.Won })} key="1">
@@ -113,11 +115,16 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
                     {matchResult.home}-{matchResult.out}
                   </span>
                 </div>
-                {showSetScores && <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} />}
+                {!ownSetScoreRow && setScores}
               </td>
               <td key="5">{game.isDoubles ? <span>&nbsp;</span> : <PreviousEncountersButton matchId={match.id} players={game} />}</td>
-            </tr>
-          );
+            </tr>,
+            ownSetScoreRow ? (
+              <tr key={`${game.matchNumber}-sets`} className={rowClassName} onClick={pinPlayer}>
+                <td colSpan={5}>{setScores}</td>
+              </tr>
+            ) : null,
+          ];
         })}
       </tbody>
     </Table>
@@ -169,6 +176,7 @@ const PlayerDesc = ({ player, competition }: PlayerDescProps) => {
 export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
   const [pinnedPlayerIndex, setPinnedPlayerIndex] = useState(0);
   const [showSetScores, setShowSetScores] = useState(false);
+  const isSmallDevice = useViewport().width < 600;
   const matchResult = { home: 0, out: 0 };
 
   const games = match.getGameMatches().sort((a, b) => a.matchNumber - b.matchNumber);
@@ -191,8 +199,11 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
         {games.map(game => {
           matchResult[game.homeSets > game.outSets ? 'home' : 'out']++;
           const highlightRow = game.home?.uniqueIndex === pinnedPlayerIndex || game.out?.uniqueIndex === pinnedPlayerIndex;
-          return (
-            <tr key={game.matchNumber} className={cn({ success: highlightRow })}>
+          const setScores = showSetScores ? <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} /> : null;
+          // Five sets don't fit next to the score on a phone: give them the full table width one row lower
+          const ownSetScoreRow = isSmallDevice && showSetScores && game.setScores.length > 0;
+          return [
+            <tr key={game.matchNumber} className={cn({ success: highlightRow, 'set-scores-joined': ownSetScoreRow })}>
               {!game.isDoubles ? (
                 [
                   <td key="1">
@@ -226,10 +237,15 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
                     {matchResult.home}-{matchResult.out}
                   </span>
                 </div>
-                {showSetScores && <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} />}
+                {!ownSetScoreRow && setScores}
               </td>
-            </tr>
-          );
+            </tr>,
+            ownSetScoreRow ? (
+              <tr key={`${game.matchNumber}-sets`} className={cn({ success: highlightRow })}>
+                <td colSpan={4}>{setScores}</td>
+              </tr>
+            ) : null,
+          ];
         })}
       </tbody>
     </Table>
