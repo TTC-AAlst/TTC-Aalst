@@ -21,6 +21,12 @@ describe('SetScores', () => {
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.className.includes('set-score-won'))).toEqual([true, false, false, false]);
   });
 
+  it('colors from the away side without turning the sets around', () => {
+    const { container } = render(<SetScores sets={sets} ownSide="out" />);
+    expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.textContent)).toEqual(['9-11', '11-8', '11-5', '15-13']);
+    expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.className.includes('set-score-won'))).toEqual([true, false, false, false]);
+  });
+
   it('renders nothing for a game without set scores', () => {
     const { container } = render(<SetScores sets={[]} />);
     expect(container).toBeEmptyDOMElement();

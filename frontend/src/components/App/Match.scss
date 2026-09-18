@@ -308,16 +308,19 @@
   border-radius: 3px;
 }
 
+// Filled vs outlined, not just green vs red: the chips stay tellable apart without color
 .set-score-won {
-  background-color: #d1e7dd;
-  border-color: #badbcc;
-  color: #0f5132;
+  background-color: #0f5132;
+  border-color: #0f5132;
+  color: #fff;
+  font-weight: 700;
 }
 
 .set-score-lost {
-  background-color: #f8d7da;
-  border-color: #f5c2c7;
-  color: #842029;
+  background-color: #fff;
+  border-color: #b02a37;
+  color: #b02a37;
+  font-weight: 400;
 }
 
 // The set scores sit on a row of their own on a phone: keep them visually part of the game above.

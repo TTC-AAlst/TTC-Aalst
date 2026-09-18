@@ -113,7 +113,7 @@ export const IndividualMatches = ({ match, ownPlayerId }: IndividualMatchesProps
                     {matchResult.home}-{matchResult.out}
                   </span>
                 </div>
-                {showSetScores && <SetScores sets={game.setScores} />}
+                {showSetScores && <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} />}
               </td>
               <td key="5">{game.isDoubles ? <span>&nbsp;</span> : <PreviousEncountersButton matchId={match.id} players={game} />}</td>
             </tr>
@@ -226,7 +226,7 @@ export const ReadonlyIndividualMatches = ({ match }: { match: IMatch }) => {
                     {matchResult.home}-{matchResult.out}
                   </span>
                 </div>
-                {showSetScores && <SetScores sets={game.setScores} />}
+                {showSetScores && <SetScores sets={game.setScores} ownSide={match.isHomeMatch ? 'home' : 'out'} />}
               </td>
             </tr>
           );
