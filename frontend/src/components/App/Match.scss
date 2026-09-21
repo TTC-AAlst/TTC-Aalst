@@ -309,19 +309,17 @@
   border-radius: 3px;
 }
 
-// Green fill vs red outline, not just green vs red: the chips stay tellable apart without color
+// Blue/orange, not green/red: green/red is indistinguishable with deuteranopia
 .set-score-won {
-  background-color: #d1e7dd;
-  border-color: #badbcc;
-  color: #0f5132;
-  font-weight: 700;
+  background-color: #cfe2ff;
+  border-color: #9ec5fe;
+  color: #08316e;
 }
 
 .set-score-lost {
-  background-color: #fff;
-  border-color: #b02a37;
-  color: #b02a37;
-  font-weight: 400;
+  background-color: #ffe2c7;
+  border-color: #fdc188;
+  color: #7a3a02;
 }
 
 // The set scores sit on a row of their own on a phone: keep them visually part of the game above.
