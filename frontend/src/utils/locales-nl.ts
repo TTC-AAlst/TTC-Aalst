@@ -64,6 +64,7 @@ export default {
       save: 'Bewaren',
       saving: 'Bewaren...',
       cancel: 'Annuleren',
+      delete: 'Verwijderen',
       loading: 'Laden...',
       search: 'Zoeken...',
 
@@ -414,6 +415,14 @@ export default {
         player: 'Speler',
         victories: 'Overwinningen',
         noMatchesPlayed: 'Nog niet aangetreden',
+      },
+      playerNotes: {
+        title: 'Notities over ${name}',
+        buttonLabel: 'Notities over ${name}',
+        add: 'Notitie toevoegen',
+        placeholder: 'Hoe speelt deze tegenstander? Waar moet je op letten?',
+        privacy: 'Enkel jij ziet deze notitie.',
+        lastEdit: 'Laatst bewerkt op ${date}',
       },
       enemyVictory: '${}ov.',
       club: {

@@ -13,6 +13,7 @@ import { selectOpponentMatches } from '../../../reducers/selectors/selectOpponen
 import { RootState } from '../../../store';
 import storeUtil from '../../../storeUtil';
 import { PreviousEncountersButtonModal } from './PreviousEncounters';
+import { OpponentPlayerNoteButton } from './OpponentPlayerNote';
 import { getOpponentTeamEncounters } from '../../../reducers/matchInfoReducer';
 
 type OpponentsFormationProps = {
@@ -120,7 +121,10 @@ export const OpponentsFormation = ({ match, opponent }: OpponentsFormationProps)
             <td style={{ textAlign: 'right' }}>{`${((f.won / (f.lost + f.won)) * 100).toFixed(0)}%`}</td>
             {currentPlayer ? (
               <td>
-                <PreviousEncountersButton ourPlayer={currentPlayer} opponent={f.player} match={match} />
+                <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                  <PreviousEncountersButton ourPlayer={currentPlayer} opponent={f.player} match={match} />
+                  <OpponentPlayerNoteButton competition={match.competition} opponentUniqueIndex={f.player.uniqueIndex} opponentName={f.player.name} />
+                </div>
               </td>
             ) : null}
           </tr>

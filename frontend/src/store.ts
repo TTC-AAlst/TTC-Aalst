@@ -10,6 +10,7 @@ import readonlyMatchesReducer from './reducers/readonlyMatchesReducer';
 import matchInfoReducer from './reducers/matchInfoReducer';
 import clubPlayersReducer from './reducers/clubPlayersReducer';
 import toogReducer from './reducers/toogReducer';
+import playerNotesReducer from './reducers/playerNotesReducer';
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     clubs: clubsReducer,
     clubPlayers: clubPlayersReducer,
     toog: toogReducer,
+    playerNotes: playerNotesReducer,
   },
 });
 

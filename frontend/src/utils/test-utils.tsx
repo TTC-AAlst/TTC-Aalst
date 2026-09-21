@@ -15,6 +15,7 @@ import readonlyMatchesReducer from '../reducers/readonlyMatchesReducer';
 import matchInfoReducer from '../reducers/matchInfoReducer';
 import clubPlayersReducer from '../reducers/clubPlayersReducer';
 import toogReducer from '../reducers/toogReducer';
+import playerNotesReducer from '../reducers/playerNotesReducer';
 
 type DeepPartial<T> = { [P in keyof T]?: DeepPartial<T[P]> };
 
@@ -34,6 +35,7 @@ const rootReducer = combineReducers({
   clubs: clubsReducer,
   clubPlayers: clubPlayersReducer,
   toog: toogReducer,
+  playerNotes: playerNotesReducer,
 });
 
 function createTestStore(preloadedState?: DeepPartial<RootState>) {

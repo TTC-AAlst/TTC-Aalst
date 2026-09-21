@@ -5,11 +5,12 @@ import { Button, Modal } from 'react-bootstrap';
 import { TrophyIcon } from '../../controls/Icons/TrophyIcon';
 import { ThumbsUpIcon, ThumbsDownIcon } from '../../controls/Icons/ThumbsIcons';
 import { Icon } from '../../controls/Icons/Icon';
-import { IMatch, PlayerEncounter } from '../../../models/model-interfaces';
+import { Competition, IMatch, PlayerEncounter } from '../../../models/model-interfaces';
 import { t } from '../../../locales';
 import { selectUser, useTtcSelector } from '../../../utils/hooks/storeHooks';
 import { useViewport } from '../../../utils/hooks/useViewport';
 import storeUtil from '../../../storeUtil';
+import { OpponentPlayerNoteButton } from './OpponentPlayerNote';
 
 type OurPlayerInfo = {
   playerId: number;
@@ -61,7 +62,14 @@ export const PreviousEncounters = ({ match }: { match: IMatch }) => {
   return (
     <div className="match-card-tab-content">
       {playersToShow.map((player, index) => (
-        <PlayerEncountersSection key={player.playerId} player={player} encounters={encounters} theirPlayers={theirPlayers} showDivider={index > 0} />
+        <PlayerEncountersSection
+          key={player.playerId}
+          player={player}
+          encounters={encounters}
+          theirPlayers={theirPlayers}
+          showDivider={index > 0}
+          competition={match.competition}
+        />
       ))}
     </div>
   );
@@ -72,9 +80,10 @@ type PlayerEncountersSectionProps = {
   encounters: PlayerEncounter[];
   theirPlayers: { name: string; uniqueIndex: number; ranking: string }[];
   showDivider: boolean;
+  competition: Competition;
 };
 
-const PlayerEncountersSection = ({ player, encounters, theirPlayers, showDivider }: PlayerEncountersSectionProps) => {
+const PlayerEncountersSection = ({ player, encounters, theirPlayers, showDivider, competition }: PlayerEncountersSectionProps) => {
   const playerEncounters = encounters.filter(enc => enc.homePlayerUniqueId === player.uniqueIndex || enc.awayPlayerUniqueId === player.uniqueIndex);
 
   const hasAnyEncountersWithCurrentOpponents = theirPlayers.some(theirPlayer =>
@@ -94,7 +103,13 @@ const PlayerEncountersSection = ({ player, encounters, theirPlayers, showDivider
           );
 
           return (
-            <OpponentEncounterRow key={theirPlayer.uniqueIndex} theirPlayer={theirPlayer} encounters={vsEncounter} ourPlayerUniqueIndex={player.uniqueIndex} />
+            <OpponentEncounterRow
+              key={theirPlayer.uniqueIndex}
+              theirPlayer={theirPlayer}
+              encounters={vsEncounter}
+              ourPlayerUniqueIndex={player.uniqueIndex}
+              competition={competition}
+            />
           );
         })
       )}
@@ -106,9 +121,10 @@ type OpponentEncounterRowProps = {
   theirPlayer: { name: string; uniqueIndex: number; ranking: string };
   encounters: PlayerEncounter[];
   ourPlayerUniqueIndex: number;
+  competition: Competition;
 };
 
-const OpponentEncounterRow = ({ theirPlayer, encounters, ourPlayerUniqueIndex }: OpponentEncounterRowProps) => {
+const OpponentEncounterRow = ({ theirPlayer, encounters, ourPlayerUniqueIndex, competition }: OpponentEncounterRowProps) => {
   const [showTable, setShowTable] = useState(false);
   const viewport = useViewport();
   const isSmallDevice = viewport.width < 500;
@@ -143,6 +159,7 @@ const OpponentEncounterRow = ({ theirPlayer, encounters, ourPlayerUniqueIndex }:
         ) : (
           <span style={{ fontStyle: 'italic', color: '#999' }}>{t('match.noDuels')}</span>
         )}
+        <OpponentPlayerNoteButton competition={competition} opponentUniqueIndex={theirPlayer.uniqueIndex} opponentName={theirPlayer.name} />
       </div>
       {showTable && (
         <div style={{ marginTop: 8, marginLeft: isSmallDevice ? -16 : 0 }}>

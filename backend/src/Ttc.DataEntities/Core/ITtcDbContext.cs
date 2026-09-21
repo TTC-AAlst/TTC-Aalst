@@ -9,6 +9,7 @@ public interface ITtcDbContext : IAsyncDisposable
     DbSet<PlayerEntity> Players { get; set; }
     DbSet<PlayerLoginEntity> PlayerLogins { get; set; }
     DbSet<PlayerPasswordResetEntity> PlayerPasswordResets { get; set; }
+    DbSet<PlayerNoteEntity> PlayerNotes { get; set; }
 
     DbSet<ClubEntity> Clubs { get; set; }
     DbSet<ClubLocationEntity> ClubLocations { get; set; }

@@ -423,6 +423,16 @@ export interface IClubManager {
   sortOrder: number;
 }
 
+/** Persoonlijke notitie over een tegenstander (enkel zichtbaar voor de auteur) */
+export type IPlayerNote = {
+  id: number;
+  competition: Competition;
+  opponentUniqueIndex: number;
+  opponentName: string;
+  note: string;
+  modifiedOn: string | null;
+};
+
 export type IToogDay = {
   date: string;
   homeTeamIds: number[];

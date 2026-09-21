@@ -14,6 +14,7 @@ public class TtcDbContext : DbContext, ITtcDbContext
     public DbSet<PlayerEntity> Players { get; set; } = null!;
     public DbSet<PlayerLoginEntity> PlayerLogins { get; set; } = null!;
     public DbSet<PlayerPasswordResetEntity> PlayerPasswordResets { get; set; } = null!;
+    public DbSet<PlayerNoteEntity> PlayerNotes { get; set; } = null!;
 
     public DbSet<ClubEntity> Clubs { get; set; } = null!;
     public DbSet<ClubLocationEntity> ClubLocations { get; set; } = null!;
@@ -98,6 +99,11 @@ public class TtcDbContext : DbContext, ITtcDbContext
 
         modelBuilder.Entity<TournamentEntity>()
             .Property(o => o.Competition)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerNoteEntity>()
+            .Property(o => o.Competition)
+            .HasMaxLength(20)
             .HasConversion<string>();
 
 

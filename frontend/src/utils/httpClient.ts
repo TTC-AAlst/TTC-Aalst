@@ -106,6 +106,23 @@ const HttpClient = {
       return text ? JSON.parse(text) : (undefined as T);
     })();
   },
+  delete: <T>(url: string): Promise<T> => {
+    return (async () => {
+      const start = performance.now();
+      const response = await fetch(getUrl(url), {
+        method: 'DELETE',
+        headers: baseHeaders({ Accept: 'application/json' }),
+      });
+      logApiCall('DELETE', url, response.status, performance.now() - start, response.ok);
+
+      if (!response.ok) {
+        throw new Error(`DELETE ${url} failed: ${response.status}`);
+      }
+
+      const text = await response.text();
+      return text ? JSON.parse(text) : (undefined as T);
+    })();
+  },
   upload: async (file: File, type = 'temp', typeId = 0): Promise<{ fileName?: string }> => {
     const formData = new FormData();
     formData.append('uploadType', type);
