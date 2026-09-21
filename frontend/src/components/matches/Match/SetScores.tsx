@@ -18,9 +18,10 @@ export const SetScores = ({ sets, flip, ownSide, inline }: SetScoresProps) => {
 
   const own = ownSide ?? (flip ? 'out' : 'home');
   const opponent = own === 'home' ? 'out' : 'home';
+  const setsWon = sets.filter(set => set[own] > set[opponent]).length;
 
   return (
-    <div className={cn('set-scores', { 'set-scores-inline': inline })}>
+    <div className={cn('set-scores', { 'set-scores-inline': inline, 'set-scores-game-won': setsWon > sets.length - setsWon })}>
       {sets.map((set, index) => {
         const [left, right] = flip ? [set.out, set.home] : [set.home, set.out];
         return (

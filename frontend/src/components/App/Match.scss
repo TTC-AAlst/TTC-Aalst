@@ -307,6 +307,12 @@
   padding: 3px 4px;
   border: 1px solid transparent;
   border-radius: 3px;
+  // Bold is reserved for the games Aalst won: don't inherit it from an accentuated row
+  font-weight: 400;
+}
+
+.set-scores-game-won .set-score {
+  font-weight: 700;
 }
 
 // Blue/orange, not green/red: green/red is indistinguishable with deuteranopia

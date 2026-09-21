@@ -27,6 +27,16 @@ describe('SetScores', () => {
     expect(Array.from(container.querySelectorAll('.set-score')).map(x => x.className.includes('set-score-won'))).toEqual([true, false, false, false]);
   });
 
+  it('marks the set scores of a game won by the shown side', () => {
+    const { container } = render(<SetScores sets={sets} />);
+    expect(container.querySelector('.set-scores')!.className).toContain('set-scores-game-won');
+  });
+
+  it('leaves the set scores of a lost game unmarked', () => {
+    const { container } = render(<SetScores sets={sets} ownSide="out" />);
+    expect(container.querySelector('.set-scores')!.className).not.toContain('set-scores-game-won');
+  });
+
   it('renders nothing for a game without set scores', () => {
     const { container } = render(<SetScores sets={[]} />);
     expect(container).toBeEmptyDOMElement();
