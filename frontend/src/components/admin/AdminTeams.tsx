@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from 'react-bootstrap/Card';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -6,12 +6,16 @@ import { PlayerAutoComplete } from '../players/PlayerAutoComplete';
 import { PlayersImageGallery } from '../players/PlayersImageGallery';
 import { teamPlayerType, ITeam, Competition, TeamPlayerType } from '../../models/model-interfaces';
 import { frenoyTeamSync } from '../../reducers/matchesReducer';
+import { fetchQuitters } from '../../reducers/playersReducer';
 import { toggleTeamPlayer } from '../../reducers/teamsReducer';
-import { useTtcDispatch } from '../../utils/hooks/storeHooks';
+import { selectPlayers, selectQuitters, useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
 
 const AdminTeamPlayers = ({ team }: { team: ITeam }) => {
   const [role, setRole] = useState<TeamPlayerType>('Standard');
   const dispatch = useTtcDispatch();
+  const players = useTtcSelector(selectPlayers);
+  const quitters = useTtcSelector(selectQuitters);
+  const quitTeamPlayers = team.players.filter(ply => !players.some(p => p.id === ply.playerId));
 
   const onToggleTeamPlayer = (playerId: number) => {
     dispatch(toggleTeamPlayer({ teamId: team.id, playerId, role }));
@@ -38,6 +42,17 @@ const AdminTeamPlayers = ({ team }: { team: ITeam }) => {
           <PlayersImageGallery players={team.getPlayers().map(ply => ply.player)} competition={team.competition} subtitle={renderPlayerSubtitle} forceSmall />
 
           <div style={{ clear: 'both' }} />
+
+          {quitTeamPlayers.map(ply => (
+            <Button
+              key={ply.playerId}
+              variant="danger"
+              style={{ marginRight: 10, marginBottom: 10 }}
+              onClick={() => dispatch(toggleTeamPlayer({ teamId: team.id, playerId: ply.playerId, role: ply.type }))}
+            >
+              {quitters.find(q => q.id === ply.playerId)?.alias ?? `#${ply.playerId}`} verwijderen
+            </Button>
+          ))}
 
           <Form.Select value={role} onChange={e => setRole(e.target.value as TeamPlayerType)} style={{ width: 100, marginRight: 10, display: 'inline-block' }}>
             {Object.values(teamPlayerType).map(r => (
@@ -76,6 +91,11 @@ const AdminTeamsToolbar = ({ onFilterChange }: { onFilterChange: (comp: Competit
 
 const AdminTeams = ({ teams }: { teams: ITeam[] }) => {
   const [filter, setFilter] = useState<Competition>('Vttl');
+  const dispatch = useTtcDispatch();
+
+  useEffect(() => {
+    dispatch(fetchQuitters());
+  }, [dispatch]);
 
   return (
     <div>
