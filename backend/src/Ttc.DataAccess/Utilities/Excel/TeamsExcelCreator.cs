@@ -150,10 +150,10 @@ internal class TeamsExcelCreator
 
 
     #region Model Creation
-    public static TeamsExcelCreator CreateFormation(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs, Dictionary<DateTime, string> toogPerDay)
-        => new(BuildFormationModel(teams, matches, players, clubs, toogPerDay));
+    public static TeamsExcelCreator CreateFormation(TeamEntity[] teams, List<MatchEntity> matches, ClubEntity[] clubs, Dictionary<DateTime, string> toogPerDay)
+        => new(BuildFormationModel(teams, matches, clubs, toogPerDay));
 
-    internal static List<TeamExcelModel> BuildFormationModel(TeamEntity[] teams, List<MatchEntity> matches, PlayerEntity[] players, ClubEntity[] clubs, Dictionary<DateTime, string> toogPerDay)
+    internal static List<TeamExcelModel> BuildFormationModel(TeamEntity[] teams, List<MatchEntity> matches, ClubEntity[] clubs, Dictionary<DateTime, string> toogPerDay)
     {
         var result = new List<TeamExcelModel>();
         foreach (var team in teams.OrderByDescending(x => x.Competition).ThenBy(x => x.TeamCode))
@@ -162,7 +162,7 @@ internal class TeamsExcelCreator
 
             foreach (var teamPlayer in team.Players)
             {
-                var player = players.First(x => x.Id == teamPlayer.PlayerId);
+                var player = teamPlayer.Player;
                 var ranking = team.Competition == Competition.Sporta ? player.RankingSporta : player.RankingVttl;
                 teamModel.Players.Add(new TeamPlayerExcelModel(player.Alias ?? player.FirstName ?? "???", teamPlayer.PlayerType, ranking ?? ""));
             }

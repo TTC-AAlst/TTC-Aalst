@@ -214,6 +214,7 @@ public class TeamService
         int currentSeason = _context.CurrentSeason;
         var teams = await _context.Teams
             .Include(x => x.Players)
+            .ThenInclude(x => x.Player)
             .Where(x => x.Year == currentSeason)
             .ToArrayAsync();
 
@@ -223,8 +224,6 @@ public class TeamService
             .Where(x => x.HomeClubId == Constants.OwnClubId || x.AwayClubId == Constants.OwnClubId)
             .Where(x => x.FrenoySeason == currentFrenoySeason)
             .ToListAsync();
-
-        var players = await _context.Players.Where(x => x.QuitYear == null).ToArrayAsync();
 
         var clubs = await _context.Clubs.ToArrayAsync();
 
@@ -242,7 +241,7 @@ public class TeamService
                 return player.Alias ?? player.FirstName ?? "???";
             });
 
-        var excelCreator = TeamsExcelCreator.CreateFormation(teams, matches, players, clubs, toogPerDay);
+        var excelCreator = TeamsExcelCreator.CreateFormation(teams, matches, clubs, toogPerDay);
         return excelCreator.Create();
     }
 }

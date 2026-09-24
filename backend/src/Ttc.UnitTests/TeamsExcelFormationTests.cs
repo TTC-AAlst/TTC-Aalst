@@ -31,17 +31,17 @@ public class TeamsExcelFormationTests
 
     private static TeamEntity[] NewTeams() =>
     [
-        NewTeam(TeamAId, "A", AnnA),
-        NewTeam(TeamBId, "B", BertB),
+        NewTeam(TeamAId, "A", Players[0]),
+        NewTeam(TeamBId, "B", Players[1]),
     ];
 
-    private static TeamEntity NewTeam(int id, string teamCode, int playerId) => new()
+    private static TeamEntity NewTeam(int id, string teamCode, PlayerEntity player) => new()
     {
         Id = id,
         Competition = Competition.Sporta,
         TeamCode = teamCode,
         FrenoyDivisionId = DivisionId,
-        Players = [new TeamPlayerEntity { TeamId = id, PlayerId = playerId, PlayerType = TeamPlayerType.Standard }],
+        Players = [new TeamPlayerEntity { TeamId = id, PlayerId = player.Id, Player = player, PlayerType = TeamPlayerType.Standard }],
     };
 
     private static MatchEntity NewMatch(int id, int? homeTeamId, int? awayTeamId) => new()
@@ -68,7 +68,7 @@ public class TeamsExcelFormationTests
     {
         List<MatchEntity> matches = [NewMatch(1, TeamAId, null), NewMatch(2, null, TeamBId)];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Clubs, NoToog);
 
         Assert.Equal(["O01/001"], SheetFor(sheets, "A").Matches.Select(x => x.Match.FrenoyMatchId));
         Assert.Equal(["O02/001"], SheetFor(sheets, "B").Matches.Select(x => x.Match.FrenoyMatchId));
@@ -79,7 +79,7 @@ public class TeamsExcelFormationTests
     {
         List<MatchEntity> matches = [NewMatch(1, TeamAId, TeamBId)];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Clubs, NoToog);
 
         Assert.Equal("Aalst A", Assert.Single(SheetFor(sheets, "A").Matches).Home);
         Assert.Equal("Aalst B", Assert.Single(SheetFor(sheets, "B").Matches).Out);
@@ -93,7 +93,7 @@ public class TeamsExcelFormationTests
         derby.Players.Add(new MatchPlayerEntity { PlayerId = BertB, Name = "Bert", Home = false, Status = PlayerMatchStatus.NotPlay });
         List<MatchEntity> matches = [derby];
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, NoToog);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Clubs, NoToog);
 
         Assert.Equal(new Dictionary<string, string> { ["Ann"] = PlayerMatchStatus.Play }, Assert.Single(SheetFor(sheets, "A").Matches).PlayerDecisions);
         Assert.Equal(new Dictionary<string, string> { ["Bert"] = PlayerMatchStatus.NotPlay }, Assert.Single(SheetFor(sheets, "B").Matches).PlayerDecisions);
@@ -111,10 +111,21 @@ public class TeamsExcelFormationTests
             [awayMatch.Date.Date] = "Bert",
         };
 
-        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Players, Clubs, toogPerDay);
+        var sheets = TeamsExcelCreator.BuildFormationModel(NewTeams(), matches, Clubs, toogPerDay);
 
         Assert.Equal("Ann", Assert.Single(SheetFor(sheets, "A").Matches).Toog);
         Assert.Null(Assert.Single(SheetFor(sheets, "B").Matches).Toog);
+    }
+
+    [Fact]
+    public void BuildFormationModel_PlayerWhoQuit_StaysOnTheTeamSheet()
+    {
+        var quitter = new PlayerEntity { Id = 3, Alias = "Quinten", RankingSporta = "C6", QuitYear = 2026 };
+        TeamEntity[] teams = [NewTeam(TeamAId, "A", quitter)];
+
+        var sheets = TeamsExcelCreator.BuildFormationModel(teams, [], Clubs, NoToog);
+
+        Assert.Equal("Quinten", Assert.Single(SheetFor(sheets, "A").Players).Name);
     }
 
     [Fact]
@@ -127,7 +138,7 @@ public class TeamsExcelFormationTests
         List<MatchEntity> matches = [homeMatch];
         var toogPerDay = new Dictionary<DateTime, string> { [homeMatch.Date.Date] = "Bert" };
 
-        byte[] excel = TeamsExcelCreator.CreateFormation(NewTeams(), matches, Players, Clubs, toogPerDay).Create();
+        byte[] excel = TeamsExcelCreator.CreateFormation(NewTeams(), matches, Clubs, toogPerDay).Create();
 
         using var package = new ExcelPackage(new MemoryStream(excel));
         var sheet = package.Workbook.Worksheets["Sporta A"];
