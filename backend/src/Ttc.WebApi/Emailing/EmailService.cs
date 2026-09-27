@@ -1,8 +1,10 @@
 using System.Globalization;
+using System.Text;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
 using MimeKit;
+using MimeKit.Text;
 using Ttc.DataEntities.Core;
 using Ttc.Model.Core;
 using Ttc.Model.Players;
@@ -74,10 +76,7 @@ public class EmailService
             message.ReplyTo.AddRange(toEmails);
             message.To.Add(new MailboxAddress(player.FirstName + " " + player.LastName, player.Contact!.Email!));
             message.Subject = email.Title;
-            message.Body = new TextPart("html")
-            {
-                Text = customContent
-            };
+            message.Body = CreateBody(customContent);
 
             await client.SendAsync(message);
         }
@@ -91,15 +90,45 @@ public class EmailService
         message.From.Add(new MailboxAddress(_userProvider.Name, _config.EmailFrom));
         message.To.Add(MailboxAddress.Parse(email));
         message.Subject = subject;
-        message.Body = new TextPart("html")
-        {
-            Text = content
-        };
+        message.Body = CreateBody(content);
 
         using var client = new SmtpClient();
         await client.ConnectAsync(_config.Host, _config.Port, SecureSocketOptions.SslOnConnect);
         await client.AuthenticateAsync(_config.UserName, _config.Password);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
+    }
+
+    public static MimeEntity CreateBody(string html)
+    {
+        var builder = new BodyBuilder
+        {
+            TextBody = HtmlToText(html),
+            HtmlBody = html,
+        };
+        return builder.ToMessageBody();
+    }
+
+    private static string HtmlToText(string html)
+    {
+        var text = new StringBuilder();
+        var tokenizer = new HtmlTokenizer(new StringReader(html));
+        while (tokenizer.ReadNextToken(out var token))
+        {
+            switch (token)
+            {
+                case HtmlDataToken data:
+                    text.Append(data.Data);
+                    break;
+                case HtmlTagToken { Id: HtmlTagId.P or HtmlTagId.LI, IsEndTag: true }:
+                case HtmlTagToken { Id: HtmlTagId.Br or HtmlTagId.UL, IsEndTag: false }:
+                    text.AppendLine();
+                    break;
+                case HtmlTagToken { Id: HtmlTagId.LI, IsEndTag: false }:
+                    text.Append("- ");
+                    break;
+            }
+        }
+        return text.ToString();
     }
 }
