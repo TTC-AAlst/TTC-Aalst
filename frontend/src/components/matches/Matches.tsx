@@ -6,7 +6,8 @@ import { ThrillerIcon } from '../controls/Icons/ThrillerIcon';
 import { Icon } from '../controls/Icons/Icon';
 import { t } from '../../locales';
 import { IMatch } from '../../models/model-interfaces';
-import { selectMatches, selectUser, useTtcSelector } from '../../utils/hooks/storeHooks';
+import { selectMatches, selectPlayers, selectUser, useTtcSelector } from '../../utils/hooks/storeHooks';
+import { ToogBadge, getToogPlayer, useToogAssignments } from '../toog/ToogAssignments';
 import { getPlayerFormation } from '../../models/utils/getPlayerFormation';
 import { browseTo } from '../../routes';
 
@@ -52,6 +53,10 @@ export const Matches = () => {
   const today = dayjs();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
+  const toogAssigned = useToogAssignments();
+  const players = useTtcSelector(selectPlayers);
+  const getToog = (group: GroupedMatches | null) =>
+    group && group.matches.some(m => m.isHomeMatch) ? getToogPlayer(toogAssigned, players, dayjs(group.date))?.alias : undefined;
 
   const matchesToday = ownMatches.filter(cal => cal.date.isSame(today, 'day')).sort((a, b) => a.date.valueOf() - b.date.valueOf());
 
@@ -98,17 +103,17 @@ export const Matches = () => {
       <div style={{ maxWidth: 700, margin: '0 auto', padding: '20px 16px' }}>
         {/* Past matches */}
         {pastGroups.map(group => (
-          <DayCard key={group.date} group={group} isPast />
+          <DayCard key={group.date} group={group} isPast toog={getToog(group)} />
         ))}
 
         {/* Today marker and matches */}
         <div ref={todayRef}>
-          <TodayMarker hasMatchesToday={matchesToday.length > 0} todayGroup={todayGroup} />
+          <TodayMarker hasMatchesToday={matchesToday.length > 0} todayGroup={todayGroup} toog={getToog(todayGroup)} />
         </div>
 
         {/* Future matches */}
         {futureGroups.map(group => (
-          <DayCard key={group.date} group={group} />
+          <DayCard key={group.date} group={group} toog={getToog(group)} />
         ))}
       </div>
     </div>
@@ -118,9 +123,10 @@ export const Matches = () => {
 type TodayMarkerProps = {
   hasMatchesToday: boolean;
   todayGroup: GroupedMatches | null;
+  toog?: string;
 };
 
-const TodayMarker = ({ hasMatchesToday, todayGroup }: TodayMarkerProps) => {
+const TodayMarker = ({ hasMatchesToday, todayGroup, toog }: TodayMarkerProps) => {
   const user = useTtcSelector(selectUser);
   const todayDate = dayjs().format('dd D MMM');
   const todayColor = '#9b59b6';
@@ -152,6 +158,7 @@ const TodayMarker = ({ hasMatchesToday, todayGroup }: TodayMarkerProps) => {
         >
           {todayDate}
         </span>
+        <ToogBadge alias={toog} color={todayColor} />
         <div
           style={{
             flex: 1,
@@ -221,6 +228,7 @@ type DayCardProps = {
   group: GroupedMatches;
   isPast?: boolean;
   isToday?: boolean;
+  toog?: string;
 };
 
 const getScoreBackgroundColor = (won: boolean, isDraw: boolean) => {
@@ -269,7 +277,7 @@ const getDayDotColor = (matches: IMatch[], isToday: boolean, isPast: boolean): s
   return '#e67e22';
 };
 
-const DayCard = ({ group, isPast, isToday }: DayCardProps) => {
+const DayCard = ({ group, isPast, isToday, toog }: DayCardProps) => {
   const user = useTtcSelector(selectUser);
   const dotColor = getDayDotColor(group.matches, !!isToday, !!isPast);
 
@@ -305,6 +313,7 @@ const DayCard = ({ group, isPast, isToday }: DayCardProps) => {
         >
           {group.dateDisplay}
         </span>
+        <ToogBadge alias={toog} />
       </div>
 
       {/* Matches list */}

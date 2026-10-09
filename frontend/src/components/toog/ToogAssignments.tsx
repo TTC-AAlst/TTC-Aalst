@@ -6,7 +6,7 @@ import { IToogAssignment } from '../../models/model-interfaces';
 import { fetchToogAssigned } from '../../reducers/toogReducer';
 import { selectPlayers, selectUser, useTtcDispatch, useTtcSelector } from '../../utils/hooks/storeHooks';
 
-const useToogAssignments = () => {
+export const useToogAssignments = () => {
   const dispatch = useTtcDispatch();
   const user = useTtcSelector(selectUser);
   const assigned = useTtcSelector(state => state.toog.assigned);
@@ -88,5 +88,25 @@ export const MyToogNotice = () => {
         </div>
       ))}
     </Alert>
+  );
+};
+
+type ToogBadgeProps = {
+  alias?: string;
+  color?: string;
+};
+
+export const ToogBadge = ({ alias, color = '#666' }: ToogBadgeProps) => {
+  if (!alias) {
+    return null;
+  }
+
+  return (
+    <span className="toog-badge" title={t('week.toog')} style={{ marginLeft: 10, fontSize: '0.85em', color, whiteSpace: 'nowrap' }}>
+      <span role="img" aria-hidden="true">
+        🍺
+      </span>{' '}
+      {alias}
+    </span>
   );
 };
