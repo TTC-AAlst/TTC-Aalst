@@ -33,6 +33,12 @@ public class ToogController
         return await _service.SetMine(request.Date, request.Available);
     }
 
+    [HttpGet("assigned")]
+    public async Task<ToogAssignment[]> GetAssigned()
+    {
+        return await _service.GetAssigned();
+    }
+
     [HttpGet]
     public async Task<ActionResult<ToogAdminDay[]>> Get()
     {

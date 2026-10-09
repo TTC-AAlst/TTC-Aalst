@@ -1,3 +1,4 @@
+import { getToogPlayer } from '../../toog/ToogAssignments';
 import { getOpponentFormations } from '../../../storeUtil';
 import { getPlayerStats } from '../../../models/TeamModel';
 import { getRankingDestroyer } from '../../other/EndOfSeason/achievements/otherAchievements';
@@ -23,6 +24,7 @@ export function buildHtml(state: RootState, user: IPlayer, compFilter: Competiti
 
   // Matches
   html += getMatches(matches, compFilter);
+  html += getToog(state, matches);
 
   if (prevMatches.length) {
     html += getPrevMatches(prevMatches, state.players);
@@ -422,6 +424,25 @@ function getMatches(matches: IMatch[], compFilter: Competition) {
   });
 
   return html;
+}
+
+function getToog(state: RootState, matches: IMatch[]) {
+  const days = matches
+    .filter(m => m.isHomeMatch)
+    .map(m => m.date.startOf('day'))
+    .filter((day, index, arr) => arr.findIndex(d => d.isSame(day, 'day')) === index)
+    .sort((a, b) => a.valueOf() - b.valueOf());
+
+  const lines = days
+    .map(day => ({ day, player: getToogPlayer(state.toog.assigned, state.players, day) }))
+    .filter(line => line.player)
+    .map(line => `${line.day.format('ddd D/M')}: ${line.player!.alias}`);
+
+  if (lines.length === 0) {
+    return '';
+  }
+
+  return `<br>🍺 <b>Toog</b><br>${lines.join('<br>')}<br>`;
 }
 
 function getFullUrl(pathname: string) {

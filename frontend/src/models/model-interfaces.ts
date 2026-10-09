@@ -446,3 +446,8 @@ export type IToogAdminDay = {
   availablePlayerIds: number[];
   assignedPlayerId: number | null;
 };
+
+export type IToogAssignment = {
+  date: string;
+  playerId: number;
+};

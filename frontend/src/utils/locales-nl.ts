@@ -461,6 +461,7 @@ export default {
       prevWeek: 'Ga naar de vorige speelweek',
       nextWeek: 'Ga naar de volgende speelweek',
       formationMailed: 'Speelweek email verstuurd',
+      toog: 'Toog',
     },
     teamCalendar: {
       downloadExcel: 'Excel ploegopstellingen downloaden',

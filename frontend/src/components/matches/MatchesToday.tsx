@@ -1,4 +1,5 @@
 import { MobileLiveMatches } from './MobileLiveMatches/MobileLiveMatches';
+import { ToogLines } from '../toog/ToogAssignments';
 import { selectMatchesBeingPlayed, useTtcSelector } from '../../utils/hooks/storeHooks';
 
 export const MatchesToday = () => {
@@ -7,5 +8,11 @@ export const MatchesToday = () => {
     return <div />;
   }
 
-  return <MobileLiveMatches matches={matchesToday} />;
+  const homeDays = matchesToday.filter(m => m.isHomeMatch).map(m => m.date);
+  return (
+    <>
+      <MobileLiveMatches matches={matchesToday} />
+      <ToogLines days={homeDays} showDate={false} />
+    </>
+  );
 };

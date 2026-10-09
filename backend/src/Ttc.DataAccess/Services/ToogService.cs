@@ -144,6 +144,27 @@ public class ToogService
             .ToArray();
     }
 
+    /// <summary>Alle aanduidingen van dit seizoen, ook voorbije: de weekkalender kan terugbladeren.</summary>
+    public async Task<ToogAssignment[]> GetAssigned()
+    {
+        int currentFrenoySeason = _context.CurrentFrenoySeason;
+        var seasonStart = await _context.Matches
+            .Where(x => x.FrenoySeason == currentFrenoySeason)
+            .MinAsync(x => (DateTime?)x.Date);
+
+        if (!seasonStart.HasValue)
+        {
+            return [];
+        }
+
+        var from = seasonStart.Value.Date;
+        return await _context.Toog
+            .Where(x => x.Assigned && x.Date >= from)
+            .OrderBy(x => x.Date)
+            .Select(x => new ToogAssignment { Date = x.Date, PlayerId = x.PlayerId })
+            .ToArrayAsync();
+    }
+
     public async Task<ToogAdminDay[]> Assign(DateTime date, int? playerId)
     {
         var day = date.Date;

@@ -18,6 +18,13 @@ public class ToogAdminDay
     public int? AssignedPlayerId { get; set; }
 }
 
+/// <summary>Wie er op een clubthuisdag aan de toog staat.</summary>
+public class ToogAssignment
+{
+    public DateTime Date { get; set; }
+    public int PlayerId { get; set; }
+}
+
 public class ToogAvailabilityRequest
 {
     public DateTime Date { get; set; }

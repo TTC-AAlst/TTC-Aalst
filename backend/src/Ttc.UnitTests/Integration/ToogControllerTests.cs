@@ -288,4 +288,22 @@ public class ToogControllerTests : IntegrationTestBase
         Assert.True(day.Available);
         Assert.True(day.Assigned);
     }
+
+    [Fact]
+    public async Task GetAssigned_ListsOnlyAssignedPlayersForAnyPlayer()
+    {
+        using var plain = CreateClientFor(PlainPlayerId);
+        (await plain.PostAsJsonAsync("api/toog/mine", new ToogAvailabilityRequest { Date = HomeDay.Date, Available = true })).EnsureSuccessStatusCode();
+        using var other = CreateClientFor(OtherPlayerId);
+        Assert.Empty((await other.GetFromJsonAsync<ToogAssignment[]>("api/toog/assigned"))!);
+
+        using var board = CreateClientFor(BoardPlayerId);
+        (await board.PostAsJsonAsync("api/toog/assign", new ToogAssignRequest { Date = HomeDay.Date, PlayerId = PlainPlayerId })).EnsureSuccessStatusCode();
+
+        var assigned = await other.GetFromJsonAsync<ToogAssignment[]>("api/toog/assigned");
+
+        var row = Assert.Single(assigned!);
+        Assert.Equal(HomeDay.Date, row.Date.Date);
+        Assert.Equal(PlainPlayerId, row.PlayerId);
+    }
 }

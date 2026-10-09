@@ -4,6 +4,7 @@ import { MatchesTable } from './MatchesTable';
 import { MatchesWeekEmail } from './MatchesWeeks/MatchesWeekEmail';
 import { WeekTitle } from './MatchesWeeks/WeekTitle';
 import { WeekCalcer } from './MatchesWeeks/WeekCalcer';
+import { ToogLines } from '../toog/ToogAssignments';
 import { ButtonStack } from '../controls/Buttons/ButtonStack';
 import { EditButton } from '../controls/Buttons/EditButton';
 import { Competition, IMatch } from '../../models/model-interfaces';
@@ -90,6 +91,8 @@ export const MatchesWeek = () => {
       {compFilter !== 'Sporta' ? <MatchesWeekPerCompetition comp="Vttl" editMode={editMode} matches={matches} /> : null}
       {compFilter !== 'Vttl' && compFilter !== 'Sporta' ? <hr style={{ marginLeft: '10%', marginRight: '10%', marginTop: 50 }} /> : null}
       {compFilter !== 'Vttl' ? <MatchesWeekPerCompetition comp="Sporta" editMode={editMode} matches={matches} /> : null}
+
+      <ToogLines days={matches.filter(m => m.isHomeMatch && (compFilter === 'all' || m.competition === compFilter)).map(m => m.date)} />
     </div>
   );
 };
