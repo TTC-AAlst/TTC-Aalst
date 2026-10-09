@@ -12,6 +12,8 @@ type BuildHtmlData = {
   email: string;
   /** PlayerId -> TeamCode */
   players: PlayersPlaying;
+  /** PlayerId -> toog day(s) */
+  toog: PlayersPlaying;
 };
 
 export function buildHtml(state: RootState, user: IPlayer, compFilter: Competition, matches: IMatch[], prevMatches: IMatch[]): BuildHtmlData {
@@ -24,7 +26,8 @@ export function buildHtml(state: RootState, user: IPlayer, compFilter: Competiti
 
   // Matches
   html += getMatches(matches, compFilter);
-  html += getToog(state, matches);
+  const toogDays = getToogDays(state, matches);
+  html += getToog(toogDays);
 
   if (prevMatches.length) {
     html += getPrevMatches(prevMatches, state.players);
@@ -58,6 +61,7 @@ export function buildHtml(state: RootState, user: IPlayer, compFilter: Competiti
   return {
     email: html,
     players,
+    toog: getToogPerPlayer(toogDays),
   };
 }
 
@@ -426,23 +430,29 @@ function getMatches(matches: IMatch[], compFilter: Competition) {
   return html;
 }
 
-function getToog(state: RootState, matches: IMatch[]) {
-  const days = matches
+export function getToogDays(state: RootState, matches: IMatch[]) {
+  return matches
     .filter(m => m.isHomeMatch)
     .map(m => m.date.startOf('day'))
     .filter((day, index, arr) => arr.findIndex(d => d.isSame(day, 'day')) === index)
-    .sort((a, b) => a.valueOf() - b.valueOf());
+    .sort((a, b) => a.valueOf() - b.valueOf())
+    .map(day => ({ day: day.format('ddd D/M'), player: getToogPlayer(state.toog.assigned, state.players, day) }))
+    .filter((line): line is { day: string; player: IStorePlayer } => !!line.player);
+}
 
-  const lines = days
-    .map(day => ({ day, player: getToogPlayer(state.toog.assigned, state.players, day) }))
-    .filter(line => line.player)
-    .map(line => `${line.day.format('ddd D/M')}: ${line.player!.alias}`);
+export function getToogPerPlayer(toogDays: ReturnType<typeof getToogDays>): PlayersPlaying {
+  return toogDays.reduce((acc, line) => {
+    acc[line.player.id] = acc[line.player.id] ? `${acc[line.player.id]} en ${line.day}` : line.day;
+    return acc;
+  }, {} as PlayersPlaying);
+}
 
-  if (lines.length === 0) {
+function getToog(toogDays: ReturnType<typeof getToogDays>) {
+  if (toogDays.length === 0) {
     return '';
   }
 
-  return `<br>🍺 <b>Toog</b><br>${lines.join('<br>')}<br>`;
+  return `<br>🍺 <b>Toog</b><br>${toogDays.map(line => `${line.day}: ${line.player.alias}`).join('<br>')}<br>`;
 }
 
 function getFullUrl(pathname: string) {

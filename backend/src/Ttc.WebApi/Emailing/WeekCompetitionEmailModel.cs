@@ -12,6 +12,10 @@ public class WeekCompetitionEmailModel
     /// PlayerId to Team dictionary
     /// </summary>
     public Dictionary<int, string> Players { get; set; } = [];
+    /// <summary>
+    /// PlayerId to the day(s) they are at the toog
+    /// </summary>
+    public Dictionary<int, string> Toog { get; set; } = [];
 
     public override string ToString() => $"{Title}: {Email}";
 }

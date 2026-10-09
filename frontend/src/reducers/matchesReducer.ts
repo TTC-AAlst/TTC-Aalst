@@ -151,7 +151,7 @@ export const frenoyTeamSync = createAsyncThunk('matches/FrenoyTeamSync', async (
 
 export const emailFormation = createAsyncThunk(
   'matches/WeekCompetitionEmail',
-  async (data: { title: string; email: string; justMe: boolean; players: PlayersPlaying }, { dispatch }) => {
+  async (data: { title: string; email: string; justMe: boolean; players: PlayersPlaying; toog: PlayersPlaying }, { dispatch }) => {
     try {
       await http.post('/matches/WeekCompetitionEmail', data);
       dispatch(showSnackbar(t('week.formationMailed')));

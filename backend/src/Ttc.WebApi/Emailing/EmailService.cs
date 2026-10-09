@@ -58,15 +58,7 @@ public class EmailService
 
         foreach (var player in players)
         {
-            string customContent;
-            if (email.Players.TryGetValue(player.Id, out string? team))
-            {
-                customContent = body.Replace("{{player-info}}", $"<br>Proficiat {player.FirstName}! Je bent opgesteld in {team}. Succes!<br>");
-            }
-            else
-            {
-                customContent = body.Replace("{{player-info}}", "");
-            }
+            string customContent = body.Replace("{{player-info}}", GetPlayerInfo(player, email));
 
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(_userProvider.Name, _config.EmailFrom));
@@ -82,6 +74,26 @@ public class EmailService
         }
 
         await client.DisconnectAsync(true);
+    }
+
+    public static string GetPlayerInfo(Player player, WeekCompetitionEmailModel email)
+    {
+        bool playing = email.Players.TryGetValue(player.Id, out string? team);
+        bool toog = email.Toog.TryGetValue(player.Id, out string? toogDay);
+
+        if (playing && toog)
+        {
+            return $"<br>Proficiat {player.FirstName}! Je bent opgesteld in {team} én je bent barman op {toogDay}! Succes!<br>";
+        }
+        if (playing)
+        {
+            return $"<br>Proficiat {player.FirstName}! Je bent opgesteld in {team}. Succes!<br>";
+        }
+        if (toog)
+        {
+            return $"<br>Proficiat {player.FirstName}! Je mag de toog doen op {toogDay}.<br>";
+        }
+        return "";
     }
 
     public async Task SendEmail(string email, string subject, string content)
