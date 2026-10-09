@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import Button from 'react-bootstrap/Button';
 import { Strike } from '../controls/controls/Strike';
 import { UpcomingMatchMiniView } from './UpcomingMatchMiniView';
+import { MyToogNotice } from '../toog/ToogAssignments';
 import { selectMatches, selectMatchesBeingPlayed, selectPlayers, selectUser, selectUserTeams, useTtcSelector } from '../../utils/hooks/storeHooks';
 import { useViewport } from '../../utils/hooks/useViewport';
 import t from '../../locales';
@@ -77,6 +78,7 @@ export const DashboardUpcomingMatches = () => {
           </Link>
         )}
       </div>
+      <MyToogNotice />
       <div style={{ display: 'grid', gridTemplateColumns: isLargeDevice ? '1fr 1fr' : '1fr', gap: 8 }}>
         {userMatches.map(match => (
           <UpcomingMatchMiniView key={match.id} match={match} />

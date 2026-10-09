@@ -159,6 +159,7 @@ export default {
     },
     dashboard: {
       greeting: 'Hallo ${name} 🏓',
+      myToog: 'Je staat ${day} aan de toog',
       globalTeamStats: 'Teams',
       teamStatsCards: 'Kaarten',
       teamStatsGraph: 'Grafiek',

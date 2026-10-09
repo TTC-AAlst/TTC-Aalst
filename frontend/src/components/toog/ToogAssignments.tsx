@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
+import Alert from 'react-bootstrap/Alert';
 import { t } from '../../locales';
 import { IToogAssignment } from '../../models/model-interfaces';
 import { fetchToogAssigned } from '../../reducers/toogReducer';
@@ -56,5 +57,36 @@ export const ToogLines = ({ days, showDate = true }: ToogLinesProps) => {
         </div>
       ))}
     </div>
+  );
+};
+
+/** Reminder for the logged in player at the toog in the coming two weeks */
+export const MyToogNotice = () => {
+  const assigned = useToogAssignments();
+  const user = useTtcSelector(selectUser);
+
+  const today = dayjs().startOf('day');
+  const until = today.add(14, 'day').endOf('day');
+  const myDays = assigned
+    .filter(a => a.playerId === user.playerId)
+    .map(a => dayjs(a.date))
+    .filter(day => day.isBetween(today, until, 'day', '[]'))
+    .sort((a, b) => a.valueOf() - b.valueOf());
+
+  if (myDays.length === 0) {
+    return null;
+  }
+
+  return (
+    <Alert variant="warning" style={{ padding: '8px 12px', marginBottom: 8 }}>
+      {myDays.map(day => (
+        <div key={day.format('YYYY-MM-DD')}>
+          <span role="img" aria-hidden="true">
+            🍺
+          </span>{' '}
+          {t('dashboard.myToog', { day: day.format('dddd D/M') })}
+        </div>
+      ))}
+    </Alert>
   );
 };
