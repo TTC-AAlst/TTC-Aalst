@@ -91,8 +91,6 @@ export const MatchesWeek = () => {
       {compFilter !== 'Sporta' ? <MatchesWeekPerCompetition comp="Vttl" editMode={editMode} matches={matches} /> : null}
       {compFilter !== 'Vttl' && compFilter !== 'Sporta' ? <hr style={{ marginLeft: '10%', marginRight: '10%', marginTop: 50 }} /> : null}
       {compFilter !== 'Vttl' ? <MatchesWeekPerCompetition comp="Sporta" editMode={editMode} matches={matches} /> : null}
-
-      <ToogLines days={matches.filter(m => m.isHomeMatch && (compFilter === 'all' || m.competition === compFilter)).map(m => m.date)} />
     </div>
   );
 };
@@ -117,6 +115,7 @@ const MatchesWeekPerCompetition = ({ comp, editMode, matches }: MatchesWeekPerCo
         <strong>{comp}</strong>
       </h4>
       <MatchesTable editMode={editMode} matches={matches.sort(matchSorter)} ownTeamLink="week" />
+      <ToogLines days={matches.filter(m => m.isHomeMatch).map(m => m.date)} />
     </div>
   );
 };
