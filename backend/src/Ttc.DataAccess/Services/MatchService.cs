@@ -213,6 +213,8 @@ public class MatchService
         {
             existingPlayer.Status = matchPlayer.Status;
             existingPlayer.StatusNote = matchPlayer.StatusNote;
+            // A derby player sits in both teams: answering from the other team's view moves their side
+            existingPlayer.Home = matchPlayer.Home;
         }
         else
         {

@@ -23,6 +23,7 @@ public class MatchesControllerFormationTests : IntegrationTestBase
     private const int FarAwayMatchId = 910;
     private const int ImminentMatchId = 911;
     private const int DerbyMatchId = 912;
+    private const int StaleRowMatchId = 913;
 
     public MatchesControllerFormationTests(TtcWebApplicationFactory factory) : base(factory)
     {
@@ -56,6 +57,7 @@ public class MatchesControllerFormationTests : IntegrationTestBase
             context.Matches.Add(NewMatch(FarAwayMatchId, DateTime.Now.AddDays(5)));
             context.Matches.Add(NewMatch(ImminentMatchId, DateTime.Now.AddHours(1)));
             context.Matches.Add(NewDerbyMatch(DerbyMatchId, DateTime.Now.AddDays(5)));
+            context.Matches.Add(NewMatch(StaleRowMatchId, DateTime.Now.AddDays(5)));
             await context.SaveChangesAsync();
         }
     }
@@ -146,6 +148,51 @@ public class MatchesControllerFormationTests : IntegrationTestBase
         // so the client's mirrored view flips them to "own" and colours the row
         Assert.False(ply.GetProperty("home").GetBoolean());
         Assert.Equal("Play", ply.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task SetMyFormation_MovesAStaleRowToTheAnsweredSide()
+    {
+        await using (var seed = GetDbContext())
+        {
+            // A row stuck on the home side from an earlier answer (e.g. a derby where the player
+            // is in both teams, or a pre-fix answer)
+            seed.MatchPlayers.Add(new MatchPlayerEntity
+            {
+                MatchId = StaleRowMatchId,
+                PlayerId = BoardPlayerId,
+                Home = true,
+                Status = "Maybe",
+                Position = 1,
+                Name = "Board",
+                Ranking = "B0",
+            });
+            await seed.SaveChangesAsync();
+        }
+
+        using var client = CreateClientFor(BoardPlayerId);
+        var body = new
+        {
+            Id = 0,
+            MatchId = StaleRowMatchId,
+            PlayerId = BoardPlayerId,
+            Status = "Play",
+            StatusNote = "",
+            Home = false,
+            Position = 1,
+            Name = "Board",
+            Alias = "Board",
+            Ranking = "B0",
+            UniqueIndex = 0,
+            Won = 0,
+        };
+
+        (await client.PostAsJsonAsync("api/matches/SetMyFormation", body)).EnsureSuccessStatusCode();
+
+        await using var context = GetDbContext();
+        var stored = await context.MatchPlayers.SingleAsync(x => x.MatchId == StaleRowMatchId && x.PlayerId == BoardPlayerId);
+        Assert.False(stored.Home);
+        Assert.Equal("Play", stored.Status);
     }
 
     [Fact]
