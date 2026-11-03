@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import dayjs, { Dayjs } from 'dayjs';
 import { renderWithProviders } from '../../../utils/test-utils';
@@ -66,6 +66,10 @@ describe('PlayerLineup toog column', () => {
     vi.spyOn(http, 'post').mockResolvedValue(toogDays.map(x => ({ ...x, available: true })));
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('shows a toog-only row for a home day without an own match', async () => {
     renderWithProviders(<PlayerLineup teams={[]} playerId={playerId} showToog />, {
       preloadedState: { toog: { mine: toogDays, admin: [] } },
@@ -107,7 +111,7 @@ describe('PlayerLineup toog column', () => {
     expect(await screen.findByText('Vttl A')).toBeInTheDocument();
   });
 
-  it('turns a home day whose match the competition filter hides into a toog-only row', async () => {
+  it('hides the toog of a home day whose match the competition filter dropped', async () => {
     const sportaDay = homeDay.add(2, 'day');
     const days: IToogDay[] = [toogDays[0]!, { date: sportaDay.toISOString(), homeTeamIds: [11], available: false, assigned: false }];
     vi.spyOn(http, 'get').mockResolvedValue(days);
@@ -115,7 +119,7 @@ describe('PlayerLineup toog column', () => {
     const sporta = createTeam([sportaDay.hour(20)], { id: 11, competition: 'Sporta', teamCode: 'B' });
 
     renderWithProviders(<PlayerLineup teams={[vttl, sporta]} playerId={playerId} showToog />, {
-      preloadedState: { toog: { mine: days, admin: [] } },
+      preloadedState: { toog: { mine: days, admin: [] }, teams: [{ id: 11, competition: 'Sporta', teamCode: 'B' }] },
     });
 
     expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(2);
@@ -123,9 +127,39 @@ describe('PlayerLineup toog column', () => {
 
     fireEvent.click(screen.getByText('Sporta'));
 
-    // Both days keep their toggle, but only the Sporta day is still a match row
-    expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(2);
+    // The Vttl day is no longer a match row and its toog is out of the Sporta filter
+    expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(1);
     expect(screen.getAllByText('Opponent B')).toHaveLength(1);
+  });
+
+  it('hides a toog-only row that falls outside the active round', async () => {
+    // getFirstOrLast() reads the clock once at mount; pin it to the first round
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-15T12:00:00'));
+    const days: IToogDay[] = [
+      { date: dayjs('2026-11-10').startOf('day').toISOString(), homeTeamIds: [10], available: false, assigned: false },
+      { date: dayjs('2027-03-10').startOf('day').toISOString(), homeTeamIds: [10], available: false, assigned: false },
+    ];
+    vi.spyOn(http, 'get').mockResolvedValue(days);
+
+    renderWithProviders(<PlayerLineup teams={[]} playerId={playerId} showToog />, {
+      preloadedState: { toog: { mine: days, admin: [] } },
+    });
+    vi.useRealTimers();
+
+    expect(await screen.findAllByText('Ik kan toog doen')).toHaveLength(1);
+  });
+
+  it('drops the toog of a day that already passed', async () => {
+    const pastDays: IToogDay[] = [{ date: dayjs().subtract(1, 'day').startOf('day').toISOString(), homeTeamIds: [10], available: false, assigned: false }];
+    vi.spyOn(http, 'get').mockResolvedValue(pastDays);
+
+    renderWithProviders(<PlayerLineup teams={[]} playerId={playerId} showToog />, {
+      preloadedState: { toog: { mine: pastDays, admin: [] } },
+    });
+
+    await waitFor(() => expect(http.get).toHaveBeenCalled());
+    expect(screen.queryByText('Ik kan toog doen')).not.toBeInTheDocument();
   });
 
   it('does not claim his team is off when a filter merely hid his match', async () => {

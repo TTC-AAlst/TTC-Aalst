@@ -75,15 +75,30 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
 
   const { matches, hasMore } = getFirstOrLastMatches(allMatchesToCome, matchesFilter);
 
-  // Toog is club wide: the competition and round filters only apply to the match rows
   const matchRows: LineupRow[] = matches.map(match => ({
     date: match.date,
     match,
     toog: showToog ? toogDays.find(day => match.date.isSame(day.date, 'day')) : undefined,
   }));
+
+  // A toog-only row carries no match to inherit the filters from, so apply them to the toog day itself
+  const toogPassesFilter = (toog: IToogDay): boolean => {
+    if (filter && !allTeams.some(team => team.competition === filter && toog.homeTeamIds.includes(team.id))) {
+      return false;
+    }
+    if (matchesFilter !== 'all' && (matchesFilter === 'first') !== dayjs(toog.date).month() >= 7) {
+      return false;
+    }
+    return true;
+  };
+
   const toogOnlyRows: LineupRow[] = !showToog
     ? []
-    : toogDays.filter(day => !matches.some(match => match.date.isSame(day.date, 'day'))).map(toog => ({ date: dayjs(toog.date), toog }));
+    : toogDays
+        .filter(day => !dayjs(day.date).isBefore(dayjs(), 'day'))
+        .filter(toogPassesFilter)
+        .filter(day => !matches.some(match => match.date.isSame(day.date, 'day')))
+        .map(toog => ({ date: dayjs(toog.date), toog }));
 
   // Two own matches on the same home day is still one toog
   const seenToogDates = new Set<string>();
