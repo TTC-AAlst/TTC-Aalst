@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Ttc.DataEntities;
@@ -112,6 +113,40 @@ public class MatchesControllerFormationTests : IntegrationTestBase
         BlockAlso = true,
         Comment = "",
     };
+
+    [Fact]
+    public async Task SetMyFormation_DerbyAwayTeamPlayer_ComesBackOnTheirOwnSide()
+    {
+        using var client = CreateClientFor(DerbyCaptainPlayerId);
+
+        // What the fixed PlayerLineup posts for a player on the derby's AWAY team: home=false
+        var body = new
+        {
+            Id = 0,
+            MatchId = DerbyMatchId,
+            PlayerId = DerbyCaptainPlayerId,
+            Status = "Play",
+            StatusNote = "",
+            Home = false,
+            Position = 1,
+            Name = "DerbyCaptain",
+            Alias = "DerbyCaptain",
+            Ranking = "B0",
+            UniqueIndex = 0,
+            Won = 0,
+        };
+
+        (await client.PostAsJsonAsync("api/matches/SetMyFormation", body)).EnsureSuccessStatusCode();
+
+        var get = await client.GetAsync($"api/matches/{DerbyMatchId}");
+        get.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await get.Content.ReadAsStringAsync());
+        var ply = doc.RootElement.GetProperty("players").EnumerateArray().Single(x => x.GetProperty("playerId").GetInt32() == DerbyCaptainPlayerId);
+        // The match is stored from the home team's view; the away player must come back home=false
+        // so the client's mirrored view flips them to "own" and colours the row
+        Assert.False(ply.GetProperty("home").GetBoolean());
+        Assert.Equal("Play", ply.GetProperty("status").GetString());
+    }
 
     [Fact]
     public async Task EditMatchPlayers_PlainPlayerLongBeforeMatch_IsForbidden()
