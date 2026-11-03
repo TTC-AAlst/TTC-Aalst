@@ -36,8 +36,9 @@
     <!-- Email -->
     <PackageVersion Include="MailKit" Version="4.17.0" />
 
-    <!-- Security: transitive pin, patched against NU1903 high advisories -->
-    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.12" />
+    <!-- Security: transitive pin, patched against NU1902/NU1903 advisories -->
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.14" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
 
     <!-- Excel -->
     <PackageVersion Include="EPPlus" Version="8.0.8" />
