@@ -40,6 +40,9 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
   const [matchesFilter, setMatchesFilter] = useState(getFirstOrLast);
   const toogDays = useTtcSelector(state => state.toog.mine);
   const allTeams = useTtcSelector(selectTeams);
+  // Matches are read through storeUtil (team.getMatches), which is not reactive; subscribing to the
+  // slice repaints the row when answering a match changes its formation
+  useTtcSelector(state => state.matches);
 
   useEffect(() => {
     if (showToog) {
