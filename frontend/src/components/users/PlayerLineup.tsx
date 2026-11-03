@@ -54,6 +54,7 @@ const PlayerLineup = ({ playerId, teams: propTeams, disableBlockedMatches: _disa
     dispatch(
       selectPlayer({
         matchId: match.id,
+        teamId: match.teamId,
         status,
         statusNote: showCommentId ? comment : statusNote || '',
         playerId,

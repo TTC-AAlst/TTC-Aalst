@@ -74,8 +74,10 @@ export const deleteComment = createAsyncThunk('matches/DeleteComment', async (da
 
 export const selectPlayer = createAsyncThunk(
   'matches/SelectPlayer',
-  async (data: { matchId: number; status: MatchPlayerStatus; statusNote: string | null; playerId: number }, { dispatch }) => {
-    const match = storeUtil.getMatch(data.matchId);
+  async (data: { matchId: number; teamId: number; status: MatchPlayerStatus; statusNote: string | null; playerId: number }, { dispatch }) => {
+    // teamId picks the side of a derby: both teams are ours, so the match is mirrored per team and
+    // isHomeMatch (the player's physical side, which the server stores as MatchPlayer.home) differs
+    const match = storeUtil.getMatch(data.matchId, data.teamId);
     const player = storeUtil.getPlayer(data.playerId);
     const comp = player.getCompetition(match.competition);
 
@@ -98,6 +100,7 @@ export const selectPlayer = createAsyncThunk(
     } else {
       matchPlayer = {
         ...matchPlayer,
+        home: match.isHomeMatch,
         status: data.status,
         uniqueIndex: comp.uniqueIndex,
       };
