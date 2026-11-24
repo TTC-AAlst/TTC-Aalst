@@ -43,7 +43,13 @@ public class MembershipService
     public async Task<PlayerMembership> Get(int playerId)
     {
         var entity = await _context.PlayerMemberships.FindAsync(playerId);
-        return entity == null ? new PlayerMembership { PlayerId = playerId } : Map(entity);
+        if (entity != null)
+        {
+            return Map(entity);
+        }
+
+        var player = await _context.Players.FindAsync(playerId);
+        return NewMembership(playerId, player);
     }
 
     public async Task<PlayerMembership?> Save(PlayerMembership membership)
@@ -76,6 +82,16 @@ public class MembershipService
     }
 
     /// <summary>
+    /// Zonder opgeslagen gegevens: de competities van de Frenoy sync, anders VTTL
+    /// </summary>
+    internal static PlayerMembership NewMembership(int playerId, PlayerEntity? player)
+    {
+        bool sporta = player?.ClubIdSporta != null;
+        bool vttl = player?.ClubIdVttl != null || !sporta;
+        return new PlayerMembership { PlayerId = playerId, Vttl = vttl, Sporta = sporta };
+    }
+
+    /// <summary>
     /// Het adres op de speler blijft de bron voor de rest van de site
     /// </summary>
     internal static void SyncContact(PlayerMembershipEntity src, PlayerEntity player)
@@ -93,6 +109,8 @@ public class MembershipService
 
     private static void Map(PlayerMembership src, PlayerMembershipEntity target)
     {
+        target.Vttl = src.Vttl;
+        target.Sporta = src.Sporta;
         target.Status = src.Status;
         target.BirthDate = src.BirthDate?.Date;
         target.Gender = src.Gender;
@@ -117,6 +135,8 @@ public class MembershipService
         return new PlayerMembership
         {
             PlayerId = src.PlayerId,
+            Vttl = src.Vttl,
+            Sporta = src.Sporta,
             Status = src.Status,
             BirthDate = src.BirthDate,
             Gender = src.Gender,

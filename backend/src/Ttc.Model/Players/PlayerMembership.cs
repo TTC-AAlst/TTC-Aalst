@@ -7,6 +7,14 @@ namespace Ttc.Model.Players;
 public class PlayerMembership
 {
     public int PlayerId { get; set; }
+    /// <summary>
+    /// Aangesloten bij VTTL en/of Sporta. Geen van beide: recreant, enkel lid van de club.
+    /// </summary>
+    public bool Vttl { get; set; }
+    public bool Sporta { get; set; }
+    /// <summary>
+    /// VTTL statuut
+    /// </summary>
     public MembershipStatus Status { get; set; }
     public DateTime? BirthDate { get; set; }
     public string? Gender { get; set; }

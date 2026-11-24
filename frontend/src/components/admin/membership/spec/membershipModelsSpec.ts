@@ -11,6 +11,8 @@ import {
   suggestFormType,
   withContactAddress,
   frenoySeasonToText,
+  competitionText,
+  isRecreant,
 } from '../membershipModels';
 
 const member = (season: number, club = 'OVL134'): IVttlMember => ({
@@ -42,6 +44,18 @@ describe('suggestFormType', () => {
     expect(isTransfer(member(27, 'OVL001'), 27, 'OVL134')).toBe(true);
     expect(isTransfer(member(25, 'OVL001'), 27, 'OVL134')).toBe(false);
     expect(isTransfer(member(27), 27, 'OVL134')).toBe(false);
+  });
+});
+
+describe('competitions', () => {
+  it.each([
+    [true, false, 'VTTL', false],
+    [false, true, 'Sporta', false],
+    [true, true, 'VTTL + Sporta', false],
+    [false, false, 'Recreant', true],
+  ])('vttl=%s sporta=%s is %s', (vttl, sporta, text, recreant) => {
+    expect(competitionText({ vttl, sporta })).toBe(text);
+    expect(isRecreant({ vttl, sporta })).toBe(recreant);
   });
 });
 

@@ -15,7 +15,9 @@ import {
   MembershipFormType,
   formatAddress,
   formatCity,
+  competitionText,
   isMinor,
+  isRecreant,
   isValidEmail,
   membershipForms,
   membershipStatuses,
@@ -96,7 +98,7 @@ export const MembershipForm = ({ initial, onEnd }: MembershipFormProps) => {
   const emailInvalid = !!player.contact.email && !isValidEmail(player.contact.email);
   const canSave = !!player.firstName.trim() && !!player.lastName.trim() && !emailInvalid;
 
-  const pdfData = (): IMembershipPdfData => ({
+  const vttlPdfData = (): IMembershipPdfData => ({
     formType,
     firstName: player.firstName,
     lastName: player.lastName,
@@ -130,9 +132,13 @@ export const MembershipForm = ({ initial, onEnd }: MembershipFormProps) => {
     setMembership(saved);
   };
 
+  /** One filled form per federation. Sporta forms are not available yet. */
+  const documents = (): { federation: string; data: IMembershipPdfData }[] => (membership.vttl ? [{ federation: 'VTTL', data: vttlPdfData() }] : []);
+
   const download = async () => {
-    const data = pdfData();
-    downloadPdf(await createMembershipPdf(data), getPdfFileName(data));
+    for (const doc of documents()) {
+      downloadPdf(await createMembershipPdf(doc.data), getPdfFileName(doc.data));
+    }
   };
 
   const recipients = [player.contact.email, minor ? membership.parentEmail1 : '', minor ? membership.parentEmail2 : ''].filter(Boolean).join(', ');
@@ -145,36 +151,74 @@ export const MembershipForm = ({ initial, onEnd }: MembershipFormProps) => {
         {player.quitYear ? <small style={{ color: 'red' }}> (gestopt in {player.quitYear})</small> : null}
       </h3>
 
-      <Section title="Formulier">
-        <Form.Group style={{ width: 350, display: 'inline-block', marginRight: 20, verticalAlign: 'top' }}>
-          <Form.Label>VTTL formulier</Form.Label>
-          <Form.Select value={formType} onChange={e => setFormType(e.target.value as MembershipFormType)}>
-            {membershipForms.map(f => (
-              <option key={f.key} value={f.key}>
-                {f.text}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
-        <Form.Group style={{ display: 'inline-block', verticalAlign: 'top' }}>
-          <Form.Label>Statuut</Form.Label>
-          {statuses.map(s => (
-            <Form.Check
-              key={s.key}
-              type="radio"
-              id={`status-${s.key}`}
-              label={s.text}
-              checked={membership.status === s.key}
-              onChange={() => setM({ status: s.key })}
-            />
-          ))}
-        </Form.Group>
-        {!statuses.some(s => s.key === membership.status) && <Alert variant="warning">Kies een statuut dat op dit formulier staat.</Alert>}
-        <br />
+      <Section title="Aansluiting">
+        <div style={{ marginBottom: 10 }}>
+          <Form.Check inline id="competition-vttl" label="VTTL" checked={membership.vttl} onChange={e => setM({ vttl: e.target.checked })} />
+          <Form.Check inline id="competition-sporta" label="Sporta" checked={membership.sporta} onChange={e => setM({ sporta: e.target.checked })} />
+          <b>{competitionText(membership)}</b>
+        </div>
+        {isRecreant(membership) && <Alert variant="info">Recreant: enkel lid van de club, geen aansluiting bij een bond. Er is geen formulier.</Alert>}
+        {membership.sporta && <Alert variant="warning">Het Sporta aansluitingsformulier is nog niet beschikbaar.</Alert>}
         <Field label="Datum" type="date" value={date} onChange={setDate} width={170} />
         <Field label="Voorzitter" value={chairman} onChange={setChairman} />
         <Field label="Secretaris" value={secretary} onChange={setSecretary} />
       </Section>
+
+      {membership.vttl && (
+        <Section title="VTTL">
+          <Form.Group style={{ width: 350, display: 'inline-block', marginRight: 20, verticalAlign: 'top' }}>
+            <Form.Label>VTTL formulier</Form.Label>
+            <Form.Select value={formType} onChange={e => setFormType(e.target.value as MembershipFormType)}>
+              {membershipForms.map(f => (
+                <option key={f.key} value={f.key}>
+                  {f.text}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+          <Form.Group style={{ display: 'inline-block', verticalAlign: 'top' }}>
+            <Form.Label>Statuut</Form.Label>
+            {statuses.map(s => (
+              <Form.Check
+                key={s.key}
+                type="radio"
+                id={`status-${s.key}`}
+                label={s.text}
+                checked={membership.status === s.key}
+                onChange={() => setM({ status: s.key })}
+              />
+            ))}
+          </Form.Group>
+          {!statuses.some(s => s.key === membership.status) && <Alert variant="warning">Kies een statuut dat op dit formulier staat.</Alert>}
+          <br />
+          {formType === 'renewal' ? (
+            <Field
+              label="VTTL lidnummer"
+              value={vttlUniqueIndex ? String(vttlUniqueIndex) : ''}
+              onChange={v => setVttlUniqueIndex(Number(v) || null)}
+              width={150}
+            />
+          ) : (
+            <>
+              {formType === 'reaffiliation' && (
+                <Field label="Laatste seizoen VTTL" value={membership.lastVttlSeason} onChange={lastVttlSeason => setM({ lastVttlSeason })} width={180} />
+              )}
+              <Field
+                label="Klassement ander verbond"
+                value={membership.otherFederationRanking}
+                onChange={otherFederationRanking => setM({ otherFederationRanking })}
+                width={200}
+              />
+              <Field
+                label={formType === 'first' ? 'Bond' : 'Land'}
+                value={membership.otherFederation}
+                onChange={otherFederation => setM({ otherFederation })}
+                width={200}
+              />
+            </>
+          )}
+        </Section>
+      )}
 
       <Section title="Persoonlijk">
         <Field label={t('Voornaam')} value={player.firstName} onChange={firstName => setPlayer({ ...player, firstName })} />
@@ -229,40 +273,11 @@ export const MembershipForm = ({ initial, onEnd }: MembershipFormProps) => {
         )}
       </Section>
 
-      <Section title="Tafeltennis">
-        {formType === 'renewal' ? (
-          <Field
-            label="VTTL lidnummer"
-            value={vttlUniqueIndex ? String(vttlUniqueIndex) : ''}
-            onChange={v => setVttlUniqueIndex(Number(v) || null)}
-            width={150}
-          />
-        ) : (
-          <>
-            {formType === 'reaffiliation' && (
-              <Field label="Laatste seizoen VTTL" value={membership.lastVttlSeason} onChange={lastVttlSeason => setM({ lastVttlSeason })} width={180} />
-            )}
-            <Field
-              label="Klassement ander verbond"
-              value={membership.otherFederationRanking}
-              onChange={otherFederationRanking => setM({ otherFederationRanking })}
-              width={200}
-            />
-            <Field
-              label={formType === 'first' ? 'Bond' : 'Land'}
-              value={membership.otherFederation}
-              onChange={otherFederation => setM({ otherFederation })}
-              width={200}
-            />
-          </>
-        )}
-      </Section>
-
       <div style={{ marginTop: 10, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <Button variant="primary" disabled={!canSave} onClick={save}>
           {t('common.save')}
         </Button>
-        <Button variant="outline-primary" disabled={!canSave} onClick={download}>
+        <Button variant="outline-primary" disabled={!canSave || !membership.vttl} onClick={download}>
           <i className="fa fa-file-pdf-o" /> Download PDF
         </Button>
         <Button variant="outline-danger" disabled={!canSave} onClick={() => setEmailOpen(true)}>
@@ -277,21 +292,22 @@ export const MembershipForm = ({ initial, onEnd }: MembershipFormProps) => {
         <MembershipEmailModal
           to={recipients}
           cc={params.email}
-          subject={`${membershipForms.find(f => f.key === formType)!.text} ${clubName} ${seasonYear}-${seasonYear + 1}`}
-          body={buildMembershipEmail(player.firstName, formType, params, signature)}
-          attachmentName={getPdfFileName(pdfData())}
+          subject={`${membership.vttl ? membershipForms.find(f => f.key === formType)!.text : 'Lidmaatschap'} ${clubName} ${seasonYear}-${seasonYear + 1}`}
+          body={buildMembershipEmail(
+            player.firstName,
+            membership.vttl ? formType : null,
+            documents().map(d => d.federation),
+            params,
+            signature,
+          )}
+          attachmentNames={documents().map(d => getPdfFileName(d.data))}
           onClose={() => setEmailOpen(false)}
           onSend={async email => {
-            const data = pdfData();
-            const pdf = await createMembershipPdf(data);
+            const attachments = await Promise.all(
+              documents().map(async d => ({ fileName: getPdfFileName(d.data), base64: toBase64(await createMembershipPdf(d.data)) })),
+            );
             try {
-              await sendMembershipEmail({
-                to: email.to,
-                cc: email.cc,
-                subject: email.subject,
-                email: email.body,
-                attachments: [{ fileName: getPdfFileName(data), base64: toBase64(pdf) }],
-              });
+              await sendMembershipEmail({ to: email.to, cc: email.cc, subject: email.subject, email: email.body, attachments });
               dispatch(showSnackbar('Mail verstuurd'));
               setEmailOpen(false);
             } catch {

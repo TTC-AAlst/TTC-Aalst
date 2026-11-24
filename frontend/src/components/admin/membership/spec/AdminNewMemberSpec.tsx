@@ -170,4 +170,33 @@ describe('AdminNewMember', () => {
       ),
     );
   });
+
+  it('hides the VTTL form for a Sporta only member', () => {
+    render();
+    fireEvent.click(screen.getByRole('button', { name: 'Nieuw lid aanmaken' }));
+    fireEvent.click(screen.getByLabelText('VTTL'));
+    fireEvent.click(screen.getByLabelText('Sporta'));
+
+    expect(screen.queryByText('VTTL formulier')).not.toBeInTheDocument();
+    expect(screen.getByText('Het Sporta aansluitingsformulier is nog niet beschikbaar.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Download PDF/ })).toBeDisabled();
+  });
+
+  it('emails a recreant without attachment', async () => {
+    render();
+    fireEvent.change(screen.getByPlaceholderText('Naam'), { target: { value: 'Jan Peeters' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Nieuw lid aanmaken' }));
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'jan@peeters.be' } });
+    fireEvent.click(screen.getByLabelText('VTTL'));
+
+    expect(screen.getByText(/Recreant: enkel lid van de club/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Mail naar lid/ }));
+    expect(screen.getByLabelText('Onderwerp')).toHaveValue('Lidmaatschap TTC Aalst 2026-2027');
+
+    const post = vi.spyOn(http, 'post').mockResolvedValue(undefined);
+    fireEvent.click(screen.getByRole('button', { name: 'Versturen' }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledWith('/membership/Email', expect.objectContaining({ to: ['jan@peeters.be'], attachments: [] })));
+    expect(pdf.createMembershipPdf).not.toHaveBeenCalled();
+  });
 });

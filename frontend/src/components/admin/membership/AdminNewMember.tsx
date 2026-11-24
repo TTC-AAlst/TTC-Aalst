@@ -79,6 +79,7 @@ export const AdminNewMember = ({ onEnd }: AdminNewMemberProps) => {
         player: known,
         membership: {
           ...membership,
+          vttl: true,
           gender: membership.gender ?? member.gender,
           birthDate: membership.birthDate ?? member.birthDate,
           lastVttlSeason: membership.lastVttlSeason ?? lastVttlSeason,

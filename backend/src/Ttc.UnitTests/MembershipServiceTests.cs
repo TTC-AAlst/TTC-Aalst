@@ -27,4 +27,25 @@ public class MembershipServiceTests
         Assert.Equal("Kerkstraat 1", player.Address);
         Assert.Equal("9300 Aalst", player.City);
     }
+
+    [Fact]
+    public void NewMembership_DefaultsToVttl()
+    {
+        var membership = MembershipService.NewMembership(1, new PlayerEntity());
+
+        Assert.True(membership.Vttl);
+        Assert.False(membership.Sporta);
+    }
+
+    [Fact]
+    public void NewMembership_FollowsTheFrenoyCompetitions()
+    {
+        var sportaOnly = MembershipService.NewMembership(1, new PlayerEntity { ClubIdSporta = 1 });
+        Assert.False(sportaOnly.Vttl);
+        Assert.True(sportaOnly.Sporta);
+
+        var both = MembershipService.NewMembership(1, new PlayerEntity { ClubIdVttl = 1, ClubIdSporta = 1 });
+        Assert.True(both.Vttl);
+        Assert.True(both.Sporta);
+    }
 }

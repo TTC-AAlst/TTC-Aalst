@@ -67,6 +67,8 @@ public class MembershipControllerTests : IntegrationTestBase
     private static PlayerMembership NewMembership() => new()
     {
         PlayerId = PlayerId,
+        Vttl = false,
+        Sporta = true,
         Status = MembershipStatus.Recreational,
         BirthDate = new DateTime(1990, 5, 17),
         Gender = "M",
@@ -103,6 +105,7 @@ public class MembershipControllerTests : IntegrationTestBase
 
         Assert.Equal(PlayerId, result!.PlayerId);
         Assert.Null(result.BirthDate);
+        Assert.True(result.Vttl);
     }
 
     [Fact]
@@ -115,6 +118,8 @@ public class MembershipControllerTests : IntegrationTestBase
 
         var result = await client.GetFromJsonAsync<PlayerMembership>($"/api/membership/{PlayerId}", JsonOptions);
         Assert.Equal(MembershipStatus.Recreational, result!.Status);
+        Assert.False(result.Vttl);
+        Assert.True(result.Sporta);
         Assert.Equal(new DateTime(1990, 5, 17), result.BirthDate);
 
         await using var context = GetDbContext();

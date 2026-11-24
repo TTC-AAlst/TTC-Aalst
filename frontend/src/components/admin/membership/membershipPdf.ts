@@ -20,12 +20,12 @@ export interface IMembershipPdfData {
   seasonYear: number;
 }
 
-export interface IPdfFieldValues {
+interface IPdfFieldValues {
   text: Record<string, string>;
   checked: string[];
 }
 
-export type AgeCategory = 'Benjamin' | 'Preminiem' | 'Miniem' | 'Cadet' | 'Junior' | '-19' | 'Senior' | 'Veteraan';
+type AgeCategory = 'Benjamin' | 'Preminiem' | 'Miniem' | 'Cadet' | 'Junior' | '-19' | 'Senior' | 'Veteraan';
 
 /** VTTL age categories: for season 2026-2027 a Benjamin is born in 2018 or later */
 export function getAgeCategory(birthYear: number, seasonYear: number): AgeCategory {
@@ -140,7 +140,7 @@ export function getPdfFieldValues(data: IMembershipPdfData): IPdfFieldValues {
   return { text, checked };
 }
 
-export const getPdfTemplateUrl = (formType: MembershipFormType): string => `/vttl/${membershipForms.find(f => f.key === formType)!.file}`;
+const getPdfTemplateUrl = (formType: MembershipFormType): string => `/vttl/${membershipForms.find(f => f.key === formType)!.file}`;
 
 export async function fillPdf(template: ArrayBuffer | Uint8Array, values: IPdfFieldValues): Promise<Uint8Array> {
   const pdf = await PDFDocument.load(template);

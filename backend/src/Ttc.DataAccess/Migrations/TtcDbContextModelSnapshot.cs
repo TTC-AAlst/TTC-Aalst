@@ -639,6 +639,9 @@ namespace Ttc.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<bool>("Sporta")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -651,6 +654,9 @@ namespace Ttc.DataAccess.Migrations
                     b.Property<string>("Town")
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("Vttl")
+                        .HasColumnType("tinyint(1)");
 
                     b.HasKey("PlayerId");
 

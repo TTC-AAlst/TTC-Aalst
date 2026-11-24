@@ -15,6 +15,8 @@ public partial class PlayerMembership : Migration
             columns: table => new
             {
                 PlayerId = table.Column<int>(type: "int", nullable: false),
+                Vttl = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                Sporta = table.Column<bool>(type: "tinyint(1)", nullable: false),
                 Status = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false),
                 BirthDate = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                 Gender = table.Column<string>(type: "varchar(1)", maxLength: 1, nullable: true),

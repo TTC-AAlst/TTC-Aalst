@@ -4,6 +4,10 @@ export type MembershipFormType = 'first' | 'reaffiliation' | 'renewal';
 
 export interface IPlayerMembership {
   playerId: number;
+  /** Neither VTTL nor Sporta: recreant, only a member of the club */
+  vttl: boolean;
+  sporta: boolean;
+  /** VTTL statuut */
   status: MembershipStatus;
   birthDate: string | null;
   gender: 'M' | 'V' | null;
@@ -49,8 +53,19 @@ export const membershipForms: { key: MembershipFormType; text: string; file: str
   { key: 'renewal', text: 'Hernieuwing', file: 'hernieuwing.pdf' },
 ];
 
+export const isRecreant = (m: Pick<IPlayerMembership, 'vttl' | 'sporta'>): boolean => !m.vttl && !m.sporta;
+
+export const competitionText = (m: Pick<IPlayerMembership, 'vttl' | 'sporta'>): string => {
+  if (m.vttl && m.sporta) return 'VTTL + Sporta';
+  if (m.vttl) return 'VTTL';
+  if (m.sporta) return 'Sporta';
+  return 'Recreant';
+};
+
 export const getEmptyMembership = (playerId = 0): IPlayerMembership => ({
   playerId,
+  vttl: true,
+  sporta: false,
   status: 'Competitive',
   birthDate: null,
   gender: null,

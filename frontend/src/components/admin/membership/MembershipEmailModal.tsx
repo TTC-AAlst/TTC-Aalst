@@ -12,7 +12,7 @@ type MembershipEmailModalProps = {
   cc: string;
   subject: string;
   body: string;
-  attachmentName: string;
+  attachmentNames: string[];
   onSend: (email: { to: string[]; cc: string[]; subject: string; body: string }) => Promise<void>;
   onClose: () => void;
 };
@@ -61,9 +61,11 @@ export const MembershipEmailModal = (props: MembershipEmailModalProps) => {
           <Form.Label>Onderwerp</Form.Label>
           <Form.Control value={subject} onChange={e => setSubject(e.target.value)} />
         </Form.Group>
-        <div className="mb-2">
-          <i className="fa fa-paperclip" /> {props.attachmentName}
-        </div>
+        {props.attachmentNames.map(name => (
+          <div className="mb-2" key={name}>
+            <i className="fa fa-paperclip" /> {name}
+          </div>
+        ))}
         <div style={{ height: 340 }}>
           <React.Suspense fallback={null}>
             <QuillEditor text={body} style={{ height: 300 }} onChange={setBody} readOnly={false} />

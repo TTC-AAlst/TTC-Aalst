@@ -19,6 +19,11 @@ public class PlayerMembershipEntity : IAudit
     [ForeignKey(nameof(PlayerId))]
     public PlayerEntity? Player { get; set; }
 
+    /// <summary>
+    /// Aangesloten bij VTTL en/of Sporta. Geen van beide: recreant, enkel lid van de club.
+    /// </summary>
+    public bool Vttl { get; set; }
+    public bool Sporta { get; set; }
     public MembershipStatus Status { get; set; }
     public DateTime? BirthDate { get; set; }
     [StringLength(1)]

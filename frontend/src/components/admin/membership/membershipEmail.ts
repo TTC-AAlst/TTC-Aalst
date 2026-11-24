@@ -14,6 +14,8 @@ export interface IMembershipEmailParams {
   clubBankNr: string;
 }
 
+const recreantIntro = 'Welkom bij TTC Aalst! Fijn dat je bij ons komt tafeltennissen.';
+
 const intros: Record<MembershipFormType, string> = {
   first: 'Welkom bij TTC Aalst! Fijn dat je bij ons komt tafeltennissen.',
   reaffiliation: 'Welkom terug bij TTC Aalst! Fijn dat je opnieuw bij ons komt tafeltennissen.',
@@ -28,11 +30,24 @@ const lines = (values: string[]): string =>
     .map(x => escape(x.trim()))
     .join('<br>');
 
-export function buildMembershipEmail(firstName: string, formType: MembershipFormType, params: IMembershipEmailParams, signature: string): string {
+/**
+ * @param formType The VTTL form, null when not affiliating with VTTL
+ * @param attachments Federation names of the attached forms
+ */
+export function buildMembershipEmail(
+  firstName: string,
+  formType: MembershipFormType | null,
+  attachments: string[],
+  params: IMembershipEmailParams,
+  signature: string,
+): string {
   let html = `<p>Dag ${escape(firstName)},</p>`;
-  html += `<p>${intros[formType]}</p>`;
-  html += '<p>In bijlage vind je je aansluitingsformulier voor de VTTL, al ingevuld en ondertekend door het bestuur. ';
-  html += 'Kijk je gegevens even na, vul aan waar nodig, onderteken en bezorg het ons terug.</p>';
+  html += `<p>${formType ? intros[formType] : recreantIntro}</p>`;
+  if (attachments.length) {
+    const forms = attachments.length === 1 ? `je aansluitingsformulier voor ${attachments[0]}` : `je aansluitingsformulieren voor ${attachments.join(' en ')}`;
+    html += `<p>In bijlage vind je ${forms}, al ingevuld en ondertekend door het bestuur. `;
+    html += 'Kijk je gegevens even na, vul aan waar nodig, onderteken en bezorg het ons terug.</p>';
+  }
 
   html += '<p><b>Lidgeld</b><br>';
   html += lines([params.adultMembership, params.youthMembership, params.recreationalMembers]);
