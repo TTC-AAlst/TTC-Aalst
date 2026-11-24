@@ -580,6 +580,83 @@ namespace Ttc.DataAccess.Migrations
                     b.ToTable("PlayerLogin");
                 });
 
+            modelBuilder.Entity("Ttc.DataEntities.PlayerMembershipEntity", b =>
+                {
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("BirthDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Bus")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<bool>("GSporter")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Gender")
+                        .HasMaxLength(1)
+                        .HasColumnType("varchar(1)");
+
+                    b.Property<string>("HouseNumber")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("LastVttlSeason")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Nationality")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("OtherFederation")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("OtherFederationRanking")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("ParentEmail1")
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
+                    b.Property<string>("ParentEmail2")
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<string>("ResidentInBelgiumSince")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<string>("Street")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("Town")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("PlayerId");
+
+                    b.ToTable("PlayerMembership");
+                });
+
             modelBuilder.Entity("Ttc.DataEntities.PlayerNoteEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -1059,6 +1136,52 @@ namespace Ttc.DataAccess.Migrations
 
                     b.Navigation("Audit")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Ttc.DataEntities.PlayerMembershipEntity", b =>
+                {
+                    b.HasOne("Ttc.DataEntities.PlayerEntity", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("Ttc.DataEntities.Core.Audit", "Audit", b1 =>
+                        {
+                            b1.Property<int>("PlayerMembershipEntityPlayerId")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("CreatedBy")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("varchar(50)")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime(6)")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<string>("ModifiedBy")
+                                .HasMaxLength(50)
+                                .HasColumnType("varchar(50)")
+                                .HasColumnName("ModifiedBy");
+
+                            b1.Property<DateTime?>("ModifiedOn")
+                                .HasColumnType("datetime(6)")
+                                .HasColumnName("ModifiedOn");
+
+                            b1.HasKey("PlayerMembershipEntityPlayerId");
+
+                            b1.ToTable("PlayerMembership");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlayerMembershipEntityPlayerId");
+                        });
+
+                    b.Navigation("Audit")
+                        .IsRequired();
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("Ttc.DataEntities.PlayerNoteEntity", b =>

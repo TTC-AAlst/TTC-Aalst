@@ -27,6 +27,7 @@ public static class GlobalBackendConfiguration
         services.AddScoped<PlayerService>();
         services.AddScoped<ToogService>();
         services.AddScoped<PlayerNoteService>();
+        services.AddScoped<MembershipService>();
     }
 
     private static void ConfigureDbContext(IServiceCollection services, IConfigurationRoot configuration)
