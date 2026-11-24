@@ -49,6 +49,7 @@ export default {
     administration: '/bestuur',
     generalInfo: '/club-info',
     publicHome: '/bezoekers',
+    clubTournaments: '/clubtornooien',
   },
   trans: {
     fullClubName: 'TTC Aalst',
@@ -111,6 +112,7 @@ export default {
       administration: 'Bestuur',
       generalInfo: 'Clubinfo',
       publicHome: 'Bezoekerspagina',
+      clubTournaments: 'Clubtornooien',
     },
     profile: {
       tooltip: 'Open jouw profiel',
@@ -439,6 +441,20 @@ export default {
       cookieNotice:
         'We gebruiken cookies om je de best mogelijke ervaring te bieden. Door verder te surfen op onze site gaat u akkoord met ons gebruik van cookies.',
       cookieNoticeClose: 'Sluiten',
+    },
+    clubTournaments: {
+      title: 'Clubtornooien',
+      none: 'Nog geen clubtornooien gespeeld.',
+      champion: 'Winnaar',
+      notable: 'Opvallend',
+      fullResults: 'Volledige uitslag',
+      honours: 'Erelijst',
+      earlier: 'Eerdere tornooien',
+      single: 'Enkel',
+      double: 'Dubbel',
+      players: 'spelers',
+      beat: 'won van',
+      consolation: 'Troostreeks',
     },
     links: {
       federations: 'De bonden & hun uitslagenborden',

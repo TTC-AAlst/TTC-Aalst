@@ -27,6 +27,7 @@ const Facts = React.lazy(() => import('./components/other/Facts'));
 const Teams = React.lazy(() => import('./components/teams/Teams').then(m => ({ default: m.Teams })));
 const Admin = React.lazy(() => import('./components/admin/Admin'));
 const OpponentOverview = React.lazy(() => import('./components/teams/OpponentOverview').then(m => ({ default: m.OpponentOverview })));
+const ClubTournaments = React.lazy(() => import('./components/other/ClubTournaments').then(m => ({ default: m.ClubTournaments })));
 const PublicDashboard = React.lazy(() => import('./components/dashboard/PublicDashboard').then(m => ({ default: m.PublicDashboard })));
 
 const RouterEffects = () => {
@@ -66,6 +67,7 @@ const Routes = () => {
         <Route path={t.route('facts')} element={<App Component={Facts} />} />
         <Route path={t.route('administration')} element={<App Component={Administration} />} />
         <Route path={t.route('links')} element={<App Component={Links} />} />
+        <Route path={t.route('clubTournaments')} element={<App Component={ClubTournaments} />} />
 
         <Route path={`${t.route('admin')}/:tabKey?`} element={<App Component={Admin} />} />
 

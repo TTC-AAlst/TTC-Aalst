@@ -10,4 +10,5 @@ public class TtcSettings
     public string PongRankUrl { get; set; } = "";
     public EmailConfig Email { get; set; } = new();
     public string Loki { get; set; } = "";
+    public string TournooikeSecret { get; set; } = "";
 }

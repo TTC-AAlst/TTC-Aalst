@@ -87,6 +87,9 @@ export const Navigation = ({ navOpen, closeNav }: NavigationProps) => {
           <button className="list-group-item list-group-item-action" onClick={() => goto(t.route('administration'))}>
             {t('nav.administration')}
           </button>
+          <button className="list-group-item list-group-item-action" onClick={() => goto(t.route('clubTournaments'))}>
+            {t('nav.clubTournaments')}
+          </button>
           <button className="list-group-item list-group-item-action" onClick={() => goto(t.route('links'))}>
             {t('nav.links')}
           </button>

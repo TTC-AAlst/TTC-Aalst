@@ -47,6 +47,7 @@ services:
       TtcSettings__StartSyncJob: ${TtcSettings__StartSyncJob:-false}
       TtcSettings__Loki: ${TtcSettings__Loki:-http://loki:3100}
       TtcSettings__Origins: ${TtcSettings__Origins:-http://localhost}
+      TtcSettings__TournooikeSecret: ${TtcSettings__TournooikeSecret:-}
     volumes:
       - upload:/upload
     depends_on:
