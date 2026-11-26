@@ -45,7 +45,6 @@ public class TtcWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["TtcSettings:StartSyncJob"] = "false",
                 ["TtcSettings:PongRankUrl"] = "http://localhost:9999",
                 ["TtcSettings:Loki"] = "",
-                ["TtcSettings:TournooikeSecret"] = TournooikeSecret,
                 ["TtcSettings:Email:Host"] = "localhost",
                 ["TtcSettings:Email:Port"] = "25",
                 ["TtcSettings:Email:UserName"] = "test",
@@ -84,6 +83,7 @@ public class TtcWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
         // Set environment variables BEFORE the app starts (LoadSettings reads these)
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("MYSQL_ROOT_PASSWORD", "testpassword");
+        Environment.SetEnvironmentVariable("TtcSettings__TournooikeSecret", TournooikeSecret);
         // Disable Ryuk (resource reaper) to avoid connection issues on Windows
         Environment.SetEnvironmentVariable("TESTCONTAINERS_RYUK_DISABLED", "true");
 
