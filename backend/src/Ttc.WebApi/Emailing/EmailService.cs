@@ -105,7 +105,7 @@ public class EmailService
         message.Body = CreateBody(content);
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(_config.Host, _config.Port, SecureSocketOptions.SslOnConnect);
+        await client.ConnectAsync(_config.Host, _config.Port, SecureSocketOptions.Auto);
         await client.AuthenticateAsync(_config.UserName, _config.Password);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
