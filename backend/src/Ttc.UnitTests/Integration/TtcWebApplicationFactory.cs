@@ -28,6 +28,8 @@ public class TtcWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
         _webApiDir = Path.Combine(solutionDir, "src", "Ttc.WebApi");
     }
 
+    public const string TournooikeSecret = "tournooike-test-secret";
+
     public string ConnectionString => _mySqlContainer.GetConnectionString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -43,6 +45,7 @@ public class TtcWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLi
                 ["TtcSettings:StartSyncJob"] = "false",
                 ["TtcSettings:PongRankUrl"] = "http://localhost:9999",
                 ["TtcSettings:Loki"] = "",
+                ["TtcSettings:TournooikeSecret"] = TournooikeSecret,
                 ["TtcSettings:Email:Host"] = "localhost",
                 ["TtcSettings:Email:Port"] = "25",
                 ["TtcSettings:Email:UserName"] = "test",
