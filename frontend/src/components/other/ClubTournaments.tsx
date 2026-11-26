@@ -105,9 +105,7 @@ export const ClubTournaments = () => {
 
       {honours.length > 0 && (
         <>
-          <h2 style={{ fontSize: 20 }}>
-            {t('clubTournaments.honours')}: Clubkampioenschap
-          </h2>
+          <h2 style={{ fontSize: 20 }}>{t('clubTournaments.honours')}: Clubkampioenschap</h2>
           <table className="table table-sm" style={{ marginBottom: 20 }}>
             <tbody>
               {honours.map(x => (
