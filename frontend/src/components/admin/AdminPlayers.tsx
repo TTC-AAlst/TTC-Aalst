@@ -5,6 +5,7 @@ import Form from 'react-bootstrap/Form';
 import { AdminPlayerForm } from './AdminPlayerForm';
 import AdminChangePassword from './AdminChangePassword';
 import { AdminBoardMembers } from './AdminBoardMembers';
+import { AdminNewMember } from './membership/AdminNewMember';
 import { ButtonStack } from '../controls/Buttons/ButtonStack';
 import { EditButton } from '../controls/Buttons/EditButton';
 import { Icon } from '../controls/Icons/Icon';
@@ -34,7 +35,7 @@ export const AdminPlayers = () => {
   let otherContent: ReactElement | null = null;
   switch (filter) {
     case 'new-player':
-      otherContent = <AdminPlayerForm onEnd={() => setFilter('active')} />;
+      otherContent = <AdminNewMember onEnd={() => setFilter('active')} />;
       break;
 
     case 'Speler editeren':

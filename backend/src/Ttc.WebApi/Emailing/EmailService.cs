@@ -111,6 +111,39 @@ public class EmailService
         await client.DisconnectAsync(true);
     }
 
+    public async Task SendEmail(MembershipEmailModel email)
+    {
+        var message = CreateMessage(email, _userProvider.Name, _config.EmailFrom);
+
+        using var client = new SmtpClient();
+        await client.ConnectAsync(_config.Host, _config.Port, SecureSocketOptions.Auto);
+        await client.AuthenticateAsync(_config.UserName, _config.Password);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
+    }
+
+    public static MimeMessage CreateMessage(MembershipEmailModel email, string fromName, string fromEmail)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(fromName, fromEmail));
+        message.To.AddRange(email.To.Select(MailboxAddress.Parse));
+        message.Cc.AddRange(email.Cc.Select(MailboxAddress.Parse));
+        message.ReplyTo.AddRange(email.Cc.Select(MailboxAddress.Parse));
+        message.Subject = email.Subject;
+
+        var builder = new BodyBuilder
+        {
+            TextBody = HtmlToText(email.Email),
+            HtmlBody = email.Email,
+        };
+        foreach (var attachment in email.Attachments)
+        {
+            builder.Attachments.Add(attachment.FileName, Convert.FromBase64String(attachment.Base64), ContentType.Parse("application/pdf"));
+        }
+        message.Body = builder.ToMessageBody();
+        return message;
+    }
+
     public static MimeEntity CreateBody(string html)
     {
         var builder = new BodyBuilder

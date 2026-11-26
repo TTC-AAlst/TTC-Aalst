@@ -203,6 +203,63 @@ public class FrenoyPlayersApi : FrenoyApiBase
             ))
             .ToArray();
     }
+
+    /// <summary>
+    /// Zoekt op naam in de VTTL ledenlijst van dit en de vorige seizoenen,
+    /// om te bepalen of het een eerste aansluiting of een heraansluiting is.
+    /// Zonder PlayerCategory geeft Frenoy enkel de heren terug.
+    /// </summary>
+    public async Task<ICollection<VttlMember>> SearchMembersAsync(string name, int seasonsBack)
+    {
+        int currentFrenoySeason = _currentSeason - 2000 + 1;
+        string[] categories = ["1", "2"];
+        var requests = Enumerable.Range(0, seasonsBack + 1)
+            .Select(back => currentFrenoySeason - back)
+            .SelectMany(season => categories.Select(category => SearchMembersAsync(name, season, category)));
+
+        var results = await Task.WhenAll(requests);
+        return results
+            .SelectMany(x => x)
+            .GroupBy(x => x.UniqueIndex)
+            .Select(x => x.MaxBy(member => member.Season)!)
+            .OrderBy(x => x.LastName)
+            .ThenBy(x => x.FirstName)
+            .ToArray();
+    }
+
+    private async Task<VttlMember[]> SearchMembersAsync(string name, int season, string category)
+    {
+        try
+        {
+            var response = await _frenoy.GetMembersAsync(new GetMembersRequest1
+            {
+                GetMembersRequest = new GetMembersRequest()
+                {
+                    NameSearch = name,
+                    Season = season.ToString(),
+                    PlayerCategory = category,
+                }
+            });
+
+            return (response.GetMembersResponse.MemberEntries ?? [])
+                .Select(p => new VttlMember(
+                    int.Parse(p.UniqueIndex),
+                    p.FirstName ?? "",
+                    p.LastName ?? "",
+                    p.Ranking ?? "",
+                    p.Club ?? "",
+                    p.GenderSpecified ? (p.Gender == GenderType.M ? "M" : "V") : null,
+                    p.BirthDateSpecified ? p.BirthDate : null,
+                    season
+                ))
+                .ToArray();
+        }
+        catch (System.ServiceModel.FaultException)
+        {
+            // Frenoy geeft een fault wanneer niemand gevonden wordt
+            return [];
+        }
+    }
 }
 
 public record ClubPlayer(string Name, string Ranking, int UniqueIndex);

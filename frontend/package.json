@@ -26,6 +26,7 @@
     "dayjs": "1.11.20",
     "dompurify": "3.3.3",
     "font-awesome-animation": "1.1.1",
+    "pdf-lib": "1.17.1",
     "quill": "^2.0.3",
     "react": "^19.2.7",
     "react-avatar-editor": "15.1.0",
