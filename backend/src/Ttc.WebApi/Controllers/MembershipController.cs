@@ -61,6 +61,8 @@ public class MembershipController : ControllerBase
         return Ok(result);
     }
 
+    private static readonly ParserOptions RequireDomain = new() { AllowAddressesWithoutDomain = false };
+
     [HttpPost("Email")]
     public async Task<IActionResult> Email([FromBody] MembershipEmailModel email)
     {
@@ -68,7 +70,7 @@ public class MembershipController : ControllerBase
         {
             return Forbid();
         }
-        if (email.To.Length == 0 || email.To.Concat(email.Cc).Any(x => !MailboxAddress.TryParse(x, out _)))
+        if (email.To.Length == 0 || email.To.Concat(email.Cc).Any(x => !MailboxAddress.TryParse(RequireDomain, x, out _)))
         {
             return BadRequest();
         }
