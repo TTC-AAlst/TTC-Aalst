@@ -466,6 +466,7 @@ export default {
       vttlResults: 'Resultaten VTTL',
       sportaResults: 'Resultaten Sporta',
       varia: 'Varia',
+      tournooike: 'Tournooike (Clubtoernooien)',
       vttlCalculationOne: 'Klassementsberekening VTTL (TTC Sint-Pauwels)',
       sportaCalculation: 'Klassementsberekening Sporta (TTC Sint-Pauwels)',
       dandoy: 'Dandoy (Tafeltenniswinkel)',

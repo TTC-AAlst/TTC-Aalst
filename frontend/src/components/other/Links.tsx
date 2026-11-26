@@ -66,6 +66,13 @@ const Links = () => (
         </tr>
         <tr>
           <td>
+            <a href="https://tournooike.ttc-aalst.be" target="_blank" rel="noopener noreferrer">
+              {t('links.tournooike')}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
             <a href="https://ttc-aalst.be/tabt-api.html" target="_blank" rel="noopener noreferrer">
               TabT API Test Form
             </a>
